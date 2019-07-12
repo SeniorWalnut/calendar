@@ -3,7 +3,9 @@
     <daterange 
       title="Дата рождения"
       placeholder="Выберите дату"
+      format="DD.MM.YYYY"
       v-model="currentDate"
+      :range="myRange"
     />
   </div>
 </template>
@@ -17,7 +19,11 @@ export default {
   },
   data() {
     return {
-      currentDate: ''
+      currentDate: '',
+      myRange: {
+        start: new Date(2008, 8, 27),
+        end: new Date(2010, 8, 27)
+      }
     }
   }
 }
