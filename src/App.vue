@@ -1,28 +1,30 @@
 <template>
   <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+    <daterange 
+      title="Дата рождения"
+      placeholder="Выберите дату"
+      v-model="currentDate"
+    />
   </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
-
+import Daterange from './components/Daterange';
 export default {
   name: 'app',
   components: {
-    HelloWorld
+    Daterange
+  },
+  data() {
+    return {
+      currentDate: ''
+    }
   }
 }
 </script>
 
 <style>
 #app {
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
+  font-family: 'Roboto', sans-serif;
 }
 </style>
