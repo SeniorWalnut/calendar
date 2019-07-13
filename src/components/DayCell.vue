@@ -5,7 +5,7 @@
 	>
 		<div 
 			class="day-cell__date"
-		>{{ day.dayCell }}</div>
+		>{{ day }}</div>
 	</div>
 </template>
 <script>
@@ -19,6 +19,6 @@ export default {
 <style lang="scss">
 	.day-cell {
 		&.active {}
-		&__date {}
+		&__date {		}
 	}
 </style>

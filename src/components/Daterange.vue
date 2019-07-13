@@ -14,15 +14,18 @@
 			@input="$emit('input', handleValue($event.target.value))"
 			:placeholder="placeholder"
 			@keydown="keyMonitor"
-			:maxlength="10" 
+			:maxlength="10"
+			autocomplete="off"
 		/>
+			<!-- @focus="openCalendar = true"
+			@blur="openCalendar = false" -->
 	</label>
 	<div class="daterange__calendar">
+			<!-- :days="makeCalendar" -->
+			<!-- :range="range" -->
+			<!-- :choosen-range="currentRange" -->
 		<calendar
 			v-show="openCalendar"
-			:range="range"
-			:days="makeCalendar"
-			:choosen-range="currentRange"
 		/>
 	</div>
 </div>
@@ -36,7 +39,7 @@ export default {
 			currentRange: {},
 			currentDate: new Date(),
 			inputDate: '',
-			openCalendar: false,
+			openCalendar: true,
 			isError: false,
 			currentRange: { 
 				start: null,
