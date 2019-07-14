@@ -2,10 +2,11 @@
 	<div 
 		class="day-cell"
 		:class="{ active: day.isActive }"
+		@click="$emit('set-day', day.value)"
 	>
 		<div 
 			class="day-cell__date"
-		>{{ day }}</div>
+		>{{ day.value }}</div>
 	</div>
 </template>
 <script>

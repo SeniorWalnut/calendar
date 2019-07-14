@@ -16,9 +16,9 @@
 			@keydown="keyMonitor"
 			:maxlength="10"
 			autocomplete="off"
+			@focus="openCalendar = true"
+			@blur="handleBlur"
 		/>
-			<!-- @focus="openCalendar = true"
-			@blur="openCalendar = false" -->
 	</label>
 	<div class="daterange__calendar">
 			<!-- :days="makeCalendar" -->
@@ -26,7 +26,9 @@
 			<!-- :choosen-range="currentRange" -->
 		<calendar
 			v-show="openCalendar"
+			:format="format"
 		/>
+			<!-- :days="makeMonth" -->
 	</div>
 </div>
 </template>
@@ -39,7 +41,7 @@ export default {
 			currentRange: {},
 			currentDate: new Date(),
 			inputDate: '',
-			openCalendar: true,
+			openCalendar: false,
 			isError: false,
 			currentRange: { 
 				start: null,
@@ -82,21 +84,35 @@ export default {
 			let check = e.keyCode > 95 && e.keyCode < 106 
 			|| e.keyCode > 47 && e.keyCode < 58
 		  || e.keyCode === 8;
-			console.log(check, e.keyCode)
 			if (!check) e.preventDefault();
+		},
+		handleBlur(e) {
 		},
 		/*
 		 Methods for dates itself  
 		*/
 		// Need to be locale over there
 		getDayOfWeek(num) {
+			let day;
+			if (this.value.length) 
+				day = new Date(this.value).getDay() + num;
+			day = new Date().getDay() + num;
+			return day.getDate();
 			return new Date(this.value) + num;
 		},
 		getMonth() {
-			return new Date(this.value).getFullYear();
+			let month;
+			if (this.value.length)
+				 month = new Date(this.value).getMonth();
+			month = new Date().getMonth();
+			return month;
 		},
 		getYear() {
-			return new Date(this.value).getFullYear();
+			let year;
+			if (this.value.length)
+				 year = new Date(this.value).getFullYear();
+			year = new Date().getFullYear();
+			return year;
 		},
 		// Validation
 		checkValid(date) {
@@ -105,7 +121,12 @@ export default {
 		handleError() {
 			this.isError = true;
 		},
+		makeMonth() {
+			if (!this.value.length) {
+				let date = new Date();
 
+			}
+		}
 	},
 	computed: {
 		dateLen() {

@@ -1,14 +1,24 @@
 <template>
-	<div class="calendar-wrapper">
-		<div class="calendar__top calendar-top">
-			<div class="calendar-top__arrow left"></div>
-			<div class="calendar-top__month">{{ month }}</div>
-			<div class="calendar-top__arrow right"></div>
-		</div>
-		<div class="calendar-component">
+		<div class="calendar-wrapper">
+			<div class="calendar__top calendar-top">
+				<div 
+					class="calendar-top__arrow left"
+					@click="prevMonth"
+				></div>
+				<div class="calendar-top__month">{{ localMonth }}</div>
+				<div 
+					class="calendar-top__arrow right"
+					@click="nextMonth"
+				></div>
+			</div>
 			<div class="calendar calendar-left">
 				<div class="calendar__bottom calendar-bottom">
 					<table class="calendar-bottom__date calendar-date">
+						<tr class="calendar-date__day-names">
+							<td v-for="name in dayNames">
+								{{ name }}
+							</td>
+						</tr>
 						<tr
 							class="calendar-date__week"
 							v-for="week in days"
@@ -22,7 +32,10 @@
 					</table>
 				</div>
 			</div>
-			<div class="calendar calendar-right">
+			<div 
+				class="calendar calendar-right"
+				v-if="isDouble"
+			>
 				<div class="stub"></div>
 				<div class="calendar__bottom calendar-bottom">
 					<table class="calendar-bottom__date calendar-date">
@@ -33,37 +46,86 @@
 							<td v-for="day in week">
 								<day-cell 
 								  :day="day"
+								  @set-day="$event => fetchSelectedDay($event)"
 								/> 
 							</td>
 						</tr>
 					</table>
 				</div>
 			</div>
-		</div>
 	</div>
 </template>
 <script>
-import DayCell from './DayCell'
+
+import DayCell from './DayCell';
+import { months } from '../config/calendar-assets.js';
+
+import {  
+	format
+} from 'date-fns';
+
 export default {
 	components: { DayCell },
 	data() {
 		return {
 			// days: new Array(35),
-			month: 'July, 2018'
+			days: [],
+			localDate: this.date,
+			localeFormat: null,
+			localMonth: format(this.date, 'MMM', { locale: this.localeFormat})
 		}
 	},
-	mounted() {},
-	methods: {},
-	computed: {
-		currentMonth() {
-			return new Date().getMonth();
+	props: {
+		date: { type: Date, default: new Date()},
+		format: { type: String, default: 'DD.MM.YYYY'},
+		range: { type: Object, default: () => ({
+			start: new Date(null),
+			end: new Date(new Date().getFullYear() + 100, 1, 1)
+		})},
+		dateDisable: { type: Object, default: () => null},
+		isDouble: { type: Boolean, default: false},
+		locale: { type: String, default: 'en'}
+	},
+	created() {
+		import('date-fns/locale/' + this.locale)
+			.then(data => {
+				this.localeFormat  = data.format; 
+		})
+	},
+	methods: {
+		prevMonth() {
+			let month = this.localDate.getMonth();
+			if (month === 0) month = 12
+			this.localMonth = (format(
+				this.localDate.setMonth(month - 1), 
+				'MMM', 
+				{ locale: this.localeFormat})
+			);
 		},
-		days() {
-			let arr = [];
-			for (let i = 0; i < 5; i++)
-				arr.push(new Array(7).fill(Math.floor(Math.random() * 32)));
-			arr.unshift(['m', 't', 'w', 'th', 'fri', 'sat', 'sun'])
-			return arr;
+		nextMonth() {
+			let month = this.localDate.getMonth();
+			if (month === 12) month = -1
+			this.localMonth = (format(
+				this.localDate.setMonth(month + 1), 
+				'MMM', 
+				{ locale: this.localeFormat})
+			);
+		},
+		fetchSelectedDay(selectedDay) {
+			this.days.forEach(week => {
+				week.forEach(day => {
+					if (day.value === selectedDay.value) {
+						day.isActive = true;
+						let date = new Date();
+						this.$emit('set-date', this.formatDate(new Date(date.setDate(day.value))))
+					} 
+				})
+			})
+		}
+	},
+	computed: {
+		dayNames() {
+			return ['m', 't', 'w', 'th', 'fri', 'sat', 'sun'];
 		}
 	}
 }
@@ -78,11 +140,8 @@ $shadow: 0px 0px 3px 2px #e3e4e9;
 .calendar {
 	padding: 10px 15px;
 	background-color: $calendarBack;
-	width: max-content;
-	&-wrapper {
-		width: max-content;
-	}
 	&-component {
+		width: max-content;
 		box-shadow: $shadow;
 		& > * {
 			display: inline-block;
