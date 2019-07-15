@@ -6,13 +6,13 @@
 			>
 				<div 
 					class="calendar-buttons__one"
-					@click="selectOption = 'one'"
-					:class="{active: selectOption === 'one'}"
+					@click="chooseOption('one')"
+					:class="{active: selectedOption === 'one'}"
 				>One</div>
 				<div 
 					class="calendar-buttons__range"
-					@click="selectOption = 'range'"
-					:class="{active: selectOption === 'range'}"
+					@click="chooseOption('range')"
+					:class="{active: selectedOption === 'range'}"
 				>Range</div>
 			</div>
 			<div class="calendar__top calendar-top">
@@ -103,7 +103,7 @@ export default {
 			},
 			localMonth: null,
 			localYear: parseInt(this.formatDate(this.date, 'YYYY', { locale: this.localeFormat})),
-			selectOption: 'one'
+			selectedOption: 'one'
 		}
 	},
 	props: {
@@ -115,7 +115,7 @@ export default {
 		})},
 		dateDisable: { type: Object, default: () => null},
 		isDouble: { type: Boolean, default: false},
-		locale: { type: String, default: 'en'},
+		locale: { type: String, default: 'ru'},
 		topButtons: { type: Boolean, default: false},
 		value: { type: [Object,String], default: () => ({
 			start: null,
@@ -130,14 +130,22 @@ export default {
 			})
 			.then(() => {
 				this.monthDays();
-				this.days.forEach(week => {
-					week.forEach(day => {
-						day.isActive = day.value.getTime() === this.localDate.getTime() 
-					})
+				this.handleDays((val) => {
+					val.isActive = val.value.getTime() === this.localDate.getTime() 
 				})
 			})
 	},
 	methods: {
+		chooseOption(option) {
+			this.selectedOption = option;
+			this.handleDays((day) => { day.isActive = false; });
+			window.removeEventListener('mousemove', this.hoverWhileRange);
+		},
+ 		handleDays(func = null) {
+			this.days.forEach(week => {
+				week.forEach(day => func(day))
+			})
+		},
 		formatDate(date, format) {
 			return dayjs(date).format(format);
 		},
@@ -173,8 +181,10 @@ export default {
 				{ locale: this.localeFormat})
 			);
 			this.monthDays();
+			this.getYear();
 		},
 		monthDays() {
+			console.log(startOfWeek(new Date(), 1))
 			this.days = [];
 			let weekStart = this.locale !== 'en';
 			let firstDay = startOfMonth(this.localDate);
@@ -186,7 +196,7 @@ export default {
 					? prevLastDay 
 					: firstDay 
 				), 
-				{weekStartsOn: weekStart}),
+				weekStart),
 				lastDayOfMonth(firstDay)
 			)].map(item => {
 				let check = (this.currentDate.start && item.getTime() === this.currentDate.start.getTime())
@@ -197,17 +207,15 @@ export default {
 			})
 			for (var i = 0; i < res.length - 7; i+= 7)
 				this.days.push(res.slice(i, i + 7))
-			this.days.push(res.slice(i, ))
+			this.days.push(res.slice(i,))
 		},
 		getYear() {
 			this.localYear = this.localDate.getFullYear();
 		},
 		setOne(date) {
-			this.days.forEach(week => {
-				week.forEach(day => {
-					day.isActive = day.value.getTime() === date.getTime();
-				})
-			})
+			this.handleDays((day) => {
+				day.isActive = day.value.getTime() === date.getTime();
+			});
 
 			this.currentDate = {
 				start: date,
@@ -216,21 +224,30 @@ export default {
 
 			this.$emit('input', this.formatDate(this.currentDate.start, this.format))
 		},
-
+		setRange(date) {
+			if (!this.currentDate.start)
+				this.setOne(date);
+			window.addEventListener('mousemove', this.hoverWhileRange);
+		},
+		hoverWhileRange(event) {
+			console.log(event)
+		},
 		setDay(val) {
-			if (this.selectOption === 'one')
+			if (this.selectedOption === 'one')
 				this.setOne(val);
-			// else if (this.selectOption === 'range')
+			else if (this.selectedOption === 'range')
+				this.setRange(val);
+			// else if (this.selectedOption === 'range')
 			// 	this.setRange(val);
 			// this.days.forEach(week => {
 				// week.forEach(day => {
-				// 	if (this.selectOption === 'one')
+				// 	if (this.selectedOption === 'one')
 				// 		this.setOneOption(val)*/
 				// 	// if (day.value.getTime() === val.getTime())
 					// 	day.isActive = true;
-					// else if (this.selectOption === 'one')
+					// else if (this.selectedOption === 'one')
 					// 	day.isActive = false;
-					// else if (this.selectOption === 'range'
+					// else if (this.selectedOption === 'range'
 					// 	&& val.getTime() !== )
 			// 	})
 			// });
@@ -241,7 +258,7 @@ export default {
 			// 	end: null
 			// };
 
-			// if (selectOption === 'range' && date.end)
+			// if (selectedOption === 'range' && date.end)
 			// 	date.end = val;
 			// else date.start = val;
 

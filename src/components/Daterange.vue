@@ -29,7 +29,6 @@
 			:format="format"
 			:top-buttons="true"
 			v-model="currentDate"
-			locale="en"
 		/>
 			<!-- :days="makeMonth" -->
 	</div>
