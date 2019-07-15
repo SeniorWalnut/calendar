@@ -61,7 +61,14 @@ import DayCell from './DayCell';
 import { months } from '../config/calendar-assets.js';
 
 import {  
-	format
+	format,
+	eachDay,
+	lastDayOfMonth,
+	startOfMonth,
+	parse,
+	startOfWeek,
+	endOfWeek,
+	subDays
 } from 'date-fns';
 
 export default {
@@ -70,13 +77,13 @@ export default {
 		return {
 			// days: new Array(35),
 			days: [],
-			localDate: this.date,
+			localDate: new Date(this.date),
 			localeFormat: null,
 			localMonth: format(this.date, 'MMM', { locale: this.localeFormat})
 		}
 	},
 	props: {
-		date: { type: Date, default: new Date()},
+		date: { type: [String, Date], default:() => new Date()},
 		format: { type: String, default: 'DD.MM.YYYY'},
 		range: { type: Object, default: () => ({
 			start: new Date(null),
@@ -84,7 +91,7 @@ export default {
 		})},
 		dateDisable: { type: Object, default: () => null},
 		isDouble: { type: Boolean, default: false},
-		locale: { type: String, default: 'en'}
+		locale: { type: String, default: 'ru'}
 	},
 	created() {
 		import('date-fns/locale/' + this.locale)
@@ -95,32 +102,42 @@ export default {
 	methods: {
 		prevMonth() {
 			let month = this.localDate.getMonth();
-			if (month === 0) month = 12
+			if (month === 0) month = 12;
+			this.localDate.setMonth(month - 1);
 			this.localMonth = (format(
-				this.localDate.setMonth(month - 1), 
+				this.localDate, 
 				'MMM', 
 				{ locale: this.localeFormat})
 			);
+			this.monthDays();
 		},
 		nextMonth() {
 			let month = this.localDate.getMonth();
 			if (month === 12) month = -1
+			this.localDate.setMonth(month + 1), 
 			this.localMonth = (format(
-				this.localDate.setMonth(month + 1), 
+				this.localDate,
 				'MMM', 
 				{ locale: this.localeFormat})
 			);
+			this.monthDays();
 		},
-		fetchSelectedDay(selectedDay) {
-			this.days.forEach(week => {
-				week.forEach(day => {
-					if (day.value === selectedDay.value) {
-						day.isActive = true;
-						let date = new Date();
-						this.$emit('set-date', this.formatDate(new Date(date.setDate(day.value))))
-					} 
-				})
+		monthDays() {
+			let weekStart = this.locale !== 'en';
+			let firstDay = startOfMonth(this.localDate, {weekStartsOn: weekStart});
+			let prevLastDay = subDays(firstDay, 1);
+			let res = [
+			...eachDay(
+				startOfWeek(prevLastDay, {weekStartsOn: weekStart}),
+				lastDayOfMonth(firstDay, {weekStartsOn: weekStart})
+			)].map(item => {
+				return {
+					isActive: false,
+					value: item
+				}
 			})
+			for (let i = 0; i < res.length - 6; i+= 6)
+				this.days.push(res.slice(i, i + 6))
 		}
 	},
 	computed: {
