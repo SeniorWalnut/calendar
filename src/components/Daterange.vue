@@ -10,7 +10,6 @@
 			type="text" 
 			class="daterange__input"
 			:class="{'daterange_error': isError}"
-			:value="value"
 			@input="$emit('input', handleValue($event.target.value))"
 			:placeholder="placeholder"
 			@keydown="keyMonitor"
@@ -18,6 +17,7 @@
 			autocomplete="off"
 			@focus="openCalendar = true"
 			@blur="handleBlur"
+			:value="currentDate"
 		/>
 	</label>
 	<div class="daterange__calendar">
@@ -25,8 +25,11 @@
 			<!-- :range="range" -->
 			<!-- :choosen-range="currentRange" -->
 		<calendar
-			v-show="openCalendar"
+			v-if="openCalendar"
 			:format="format"
+			:top-buttons="true"
+			v-model="currentDate"
+			locale="en"
 		/>
 			<!-- :days="makeMonth" -->
 	</div>
@@ -39,14 +42,11 @@ export default {
 	data() { 
 		return {
 			currentRange: {},
-			currentDate: new Date(),
+			currentDate: '',
 			inputDate: '',
 			openCalendar: false,
 			isError: false,
-			currentRange: { 
-				start: null,
-				end: null
-			}
+			currentDate: ''
 		} 
 	},
 	props: {
@@ -151,6 +151,9 @@ $errorColor: red;
 		color: $textColor;
 		margin: 0;
 		padding-left: 9px;
+	}
+	&__calendar {
+		width: max-content;
 	}
 	&__input {
 		padding: 11px 0 13px 9px;

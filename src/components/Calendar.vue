@@ -1,11 +1,26 @@
 <template>
 		<div class="calendar-wrapper">
+			<div 
+				class="calendar-buttons"
+				v-if="topButtons"
+			>
+				<div 
+					class="calendar-buttons__one"
+					@click="selectOption = 'one'"
+					:class="{active: selectOption === 'one'}"
+				>One</div>
+				<div 
+					class="calendar-buttons__range"
+					@click="selectOption = 'range'"
+					:class="{active: selectOption === 'range'}"
+				>Range</div>
+			</div>
 			<div class="calendar__top calendar-top">
 				<div 
 					class="calendar-top__arrow left"
 					@click="prevMonth"
 				></div>
-				<div class="calendar-top__month">{{ localMonth }}</div>
+				<div class="calendar-top__month">{{ localMonth }}, {{ localYear }}</div>
 				<div 
 					class="calendar-top__arrow right"
 					@click="nextMonth"
@@ -26,6 +41,7 @@
 							<td v-for="day in week">
 								<day-cell 
 								  :day="day"
+								  @set-day="setDay"
 								/> 
 							</td>
 						</tr>
@@ -59,27 +75,35 @@
 
 import DayCell from './DayCell';
 import { months } from '../config/calendar-assets.js';
-
-import {  
-	format,
-	eachDay,
-	lastDayOfMonth,
-	startOfMonth,
-	parse,
+import dayjs from 'dayjs';
+import { getDates } from '../config/array-of-dates.js';
+import { 
 	startOfWeek,
 	endOfWeek,
-	subDays
+	lastDayOfMonth,
+	startOfMonth
+} from '../config/dates-helpers.js';
+
+import {  
+	// lastDayOfMonth, // here
+	parse, // here
+	subDays // here
 } from 'date-fns';
 
 export default {
 	components: { DayCell },
 	data() {
 		return {
-			// days: new Array(35),
 			days: [],
 			localDate: new Date(this.date),
 			localeFormat: null,
-			localMonth: format(this.date, 'MMM', { locale: this.localeFormat})
+			currentDate: {
+				start: null,
+				end: null
+			},
+			localMonth: null,
+			localYear: parseInt(this.formatDate(this.date, 'YYYY', { locale: this.localeFormat})),
+			selectOption: 'one'
 		}
 	},
 	props: {
@@ -91,31 +115,59 @@ export default {
 		})},
 		dateDisable: { type: Object, default: () => null},
 		isDouble: { type: Boolean, default: false},
-		locale: { type: String, default: 'ru'}
+		locale: { type: String, default: 'en'},
+		topButtons: { type: Boolean, default: false},
+		value: { type: [Object,String], default: () => ({
+			start: null,
+			end: null
+		})}
 	},
 	created() {
 		import('date-fns/locale/' + this.locale)
 			.then(data => {
-				this.localeFormat  = data.format; 
-		})
+				this.localeFormat  = data;
+				this.localMonth = this.formatDate(this.date, 'MMM', { locale: this.localeFormat})
+			})
+			.then(() => {
+				this.monthDays();
+				this.days.forEach(week => {
+					week.forEach(day => {
+						day.isActive = day.value.getTime() === this.localDate.getTime() 
+					})
+				})
+			})
 	},
 	methods: {
+		formatDate(date, format) {
+			return dayjs(date).format(format);
+		},
 		prevMonth() {
 			let month = this.localDate.getMonth();
-			if (month === 0) month = 12;
+			let year = this.localDate.getFullYear();
+			if (month === 0) {
+				month = 12;
+				year -= 1;
+			}
 			this.localDate.setMonth(month - 1);
-			this.localMonth = (format(
+			this.localDate.setFullYear(year), 
+			this.localMonth = (this.formatDate(
 				this.localDate, 
 				'MMM', 
 				{ locale: this.localeFormat})
 			);
 			this.monthDays();
+			this.getYear();
 		},
 		nextMonth() {
 			let month = this.localDate.getMonth();
-			if (month === 12) month = -1
+			let year = this.localDate.getFullYear();
+			if (month === 11) {
+				month = -1
+				year += 1;
+			}
 			this.localDate.setMonth(month + 1), 
-			this.localMonth = (format(
+			this.localDate.setFullYear(year), 
+			this.localMonth = (this.formatDate(
 				this.localDate,
 				'MMM', 
 				{ locale: this.localeFormat})
@@ -123,26 +175,84 @@ export default {
 			this.monthDays();
 		},
 		monthDays() {
+			this.days = [];
 			let weekStart = this.locale !== 'en';
-			let firstDay = startOfMonth(this.localDate, {weekStartsOn: weekStart});
+			let firstDay = startOfMonth(this.localDate);
 			let prevLastDay = subDays(firstDay, 1);
 			let res = [
-			...eachDay(
-				startOfWeek(prevLastDay, {weekStartsOn: weekStart}),
-				lastDayOfMonth(firstDay, {weekStartsOn: weekStart})
+			...getDates(
+				startOfWeek(
+					(prevLastDay.getDay() 
+					? prevLastDay 
+					: firstDay 
+				), 
+				{weekStartsOn: weekStart}),
+				lastDayOfMonth(firstDay)
 			)].map(item => {
+				let check = (this.currentDate.start && item.getTime() === this.currentDate.start.getTime())
 				return {
-					isActive: false,
+					isActive: check,
 					value: item
 				}
 			})
-			for (let i = 0; i < res.length - 6; i+= 6)
-				this.days.push(res.slice(i, i + 6))
+			for (var i = 0; i < res.length - 7; i+= 7)
+				this.days.push(res.slice(i, i + 7))
+			this.days.push(res.slice(i, ))
+		},
+		getYear() {
+			this.localYear = this.localDate.getFullYear();
+		},
+		setOne(date) {
+			this.days.forEach(week => {
+				week.forEach(day => {
+					day.isActive = day.value.getTime() === date.getTime();
+				})
+			})
+
+			this.currentDate = {
+				start: date,
+				end: null
+			};
+
+			this.$emit('input', this.formatDate(this.currentDate.start, this.format))
+		},
+
+		setDay(val) {
+			if (this.selectOption === 'one')
+				this.setOne(val);
+			// else if (this.selectOption === 'range')
+			// 	this.setRange(val);
+			// this.days.forEach(week => {
+				// week.forEach(day => {
+				// 	if (this.selectOption === 'one')
+				// 		this.setOneOption(val)*/
+				// 	// if (day.value.getTime() === val.getTime())
+					// 	day.isActive = true;
+					// else if (this.selectOption === 'one')
+					// 	day.isActive = false;
+					// else if (this.selectOption === 'range'
+					// 	&& val.getTime() !== )
+			// 	})
+			// });
+
+			// this.currentDate = val;
+			// let date = {
+			// 	start: null,
+			// 	end: null
+			// };
+
+			// if (selectOption === 'range' && date.end)
+			// 	date.end = val;
+			// else date.start = val;
+
+			// this.$emit('input', date);
 		}
 	},
 	computed: {
 		dayNames() {
-			return ['m', 't', 'w', 'th', 'fri', 'sat', 'sun'];
+			if (this.locale === 'en')
+				return  ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+			return ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 		}
 	}
 }
@@ -152,16 +262,39 @@ export default {
 $calendarBack: #fff;
 $month: #202020;
 $arrow: #7bb6db;
+$buttonsColor: $arrow;
 $shadow: 0px 0px 3px 2px #e3e4e9;
 
 .calendar {
-	padding: 10px 15px;
+  padding: 10px 15px;
 	background-color: $calendarBack;
-	&-component {
+	&-wrapper {
 		width: max-content;
-		box-shadow: $shadow;
+		padding: 20px 25px;
+    box-shadow: $shadow; 
+	}
+	&-buttons {
+		margin-bottom: 15px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
 		& > * {
-			display: inline-block;
+			border: 1px solid $buttonsColor;
+			padding: 5px; 
+			cursor: pointer;
+			&:first-child {
+				border-top-left-radius: 5px;
+				border-bottom-left-radius: 5px;
+			}
+			&:last-child {
+				border-top-right-radius: 5px;
+				border-bottom-right-radius: 5px;
+
+			}
+			&.active {
+				background-color: $buttonsColor;
+				color: white;
+			}
 		}
 	}
 	&-top {

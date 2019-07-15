@@ -36,8 +36,13 @@ export default {
 </script>
 
 <style lang="scss">
+$active: #e3e491;
 	.day-cell {
-		&.active {}
+		cursor: pointer;
+		&.active {
+			background-color: $active;
+			color: white;
+		}
 		&__date {		}
 	}
 </style>
