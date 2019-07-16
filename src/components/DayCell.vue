@@ -1,8 +1,13 @@
 <template>
 	<div 
 		class="day-cell"
-		:class="{ active: day.isActive, disabled: isDisabled }"
-		@click="$emit('set-day', day.value)"
+		:class="[ 
+			{active: day.isActive}, 
+			{disabled: day.isDisabled},
+			{hovered: day.isHovered} 
+		]"
+		@click="!day.isDisabled && $emit('set-day', day.value)"
+		@mouseenter="$emit('hovered', day.value)"
 	>
 		<div 
 			class="day-cell__date"
@@ -17,17 +22,14 @@ export default {
 			default: () => {
 				return {
 		 			isActive: false,
-					value: new Date()
+					value: new Date(),
+					isHovered: false,
+					isDisabled: false
 				}
 			}
 		}
 	},
 	computed: {
-		isDisabled() {
-			let month = this.day.value.getMonth()
-			return !this.day.isActive 
-			&& month !== new Date().getMonth()
-		},
 		dayNum() {
 			return this.day.value.getDate();
 		}
@@ -36,13 +38,23 @@ export default {
 </script>
 
 <style lang="scss">
-$active: #e3e491;
+$active: #A64636;
+$hovered: #E5AFAB;
+$disabled: #e3e4e9;
 	.day-cell {
 		cursor: pointer;
 		&.active {
 			background-color: $active;
 			color: white;
 		}
-		&__date {		}
+		&.hovered {
+			background-color: $hovered;
+			color: white;
+		}
+		&.disabled {
+			color: $disabled;
+			cursor: default;
+		}
+		// &__date {		}
 	}
 </style>

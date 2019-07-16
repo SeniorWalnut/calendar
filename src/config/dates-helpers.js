@@ -14,9 +14,21 @@ const endOfWeek = (d, weekStart = 0) => {
 	return new Date(d.setDate(d.getDate() + diff));
 }
 
+const isBetween = (d1, d2) => {
+	let [min, max] = [
+		Math.min(d1.getTime(), d2.getTime()), 
+		Math.max(d1.getTime(), d2.getTime())
+	];
+	
+	return (curDate) => {
+		return min < curDate.getTime() && max > curDate.getTime();
+	}
+}
+
 export {
 	startOfWeek,
 	endOfWeek,
 	lastDayOfMonth,
-	startOfMonth
+	startOfMonth,
+	isBetween
 };

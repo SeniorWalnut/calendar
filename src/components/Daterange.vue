@@ -21,21 +21,23 @@
 		/>
 	</label>
 	<div class="daterange__calendar">
-			<!-- :days="makeCalendar" -->
-			<!-- :range="range" -->
-			<!-- :choosen-range="currentRange" -->
 		<calendar
 			v-if="openCalendar"
 			:format="format"
 			:top-buttons="true"
+			:date="currentDate"
 			v-model="currentDate"
 		/>
-			<!-- :days="makeMonth" -->
 	</div>
 </div>
 </template>
 <script>
 import Calendar from './Calendar';
+import dayjs from 'dayjs';
+
+import customParseFormat from 'dayjs/plugin/customParseFormat';
+dayjs.extend(customParseFormat);
+
 export default {
 	components: { Calendar },
 	data() { 
@@ -45,7 +47,7 @@ export default {
 			inputDate: '',
 			openCalendar: false,
 			isError: false,
-			currentDate: ''
+			currentDate: dayjs(new Date()).format(this.format)
 		} 
 	},
 	props: {
@@ -65,9 +67,9 @@ export default {
 	watch: {
 		value(val) {
 			 if (val.length  === this.dateLen) {
-				this.openCalendar = this.checkValid(val) 
-				? true : this.handleError();			 	
-			 }
+				this.openCalendar = true;
+				this.currentDate = new Date(dayjs(new Date(dayjs(val, this.format))).format(this.format));
+			}
 		}
 	},
 	methods: {
@@ -114,8 +116,8 @@ export default {
 			return year;
 		},
 		// Validation
-		checkValid(date) {
-			// if (getYear)
+		checkValid(value) {
+			return value.length;
 		},
 		handleError() {
 			this.isError = true;

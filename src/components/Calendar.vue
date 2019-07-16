@@ -1,34 +1,37 @@
 <template>
 		<div class="calendar-wrapper">
-			<div 
-				class="calendar-buttons"
-				v-if="topButtons"
-			>
-				<div 
-					class="calendar-buttons__one"
-					@click="chooseOption('one')"
-					:class="{active: selectedOption === 'one'}"
-				>One</div>
-				<div 
-					class="calendar-buttons__range"
-					@click="chooseOption('range')"
-					:class="{active: selectedOption === 'range'}"
-				>Range</div>
-			</div>
 			<div class="calendar__top calendar-top">
 				<div 
-					class="calendar-top__arrow left"
-					@click="prevMonth"
-				></div>
-				<div class="calendar-top__month">{{ localMonth }}, {{ localYear }}</div>
-				<div 
-					class="calendar-top__arrow right"
-					@click="nextMonth"
-				></div>
+					class="calendar-buttons"
+					v-if="topButtons"
+				>
+					<div 
+							class="calendar-buttons__one"
+							@click="chooseOption('one')"
+							:class="{active: selectedOption === 'one'}"
+						>One
+					</div>
+					<div 
+							class="calendar-buttons__range"
+							@click="chooseOption('range')"
+							:class="{active: selectedOption === 'range'}"
+						>Range</div>
+					</div>
+				<div class="calendar-top__nav">
+					<div 
+						class="calendar-top__arrow left"
+						@click="prevMonth"
+					></div>
+					<div class="calendar-top__month">{{ localMonth }}, {{ localYear }}</div>
+					<div 
+						class="calendar-top__arrow right"
+						@click="nextMonth"
+					></div>
+				</div>
 			</div>
-			<div class="calendar calendar-left">
-				<div class="calendar__bottom calendar-bottom">
-					<table class="calendar-bottom__date calendar-date">
+			<div class="calendar__main">
+				<div class="calendar calendar-left">
+					<table class="calendar-date">
 						<tr class="calendar-date__day-names">
 							<td v-for="name in dayNames">
 								{{ name }}
@@ -36,33 +39,37 @@
 						</tr>
 						<tr
 							class="calendar-date__week"
-							v-for="week in days"
+							v-for="week in days.slice(0, 5)"
 						>
 							<td v-for="day in week">
 								<day-cell 
 								  :day="day"
 								  @set-day="setDay"
+								  @hovered="hoverRange"
 								/> 
 							</td>
 						</tr>
 					</table>
 				</div>
-			</div>
-			<div 
-				class="calendar calendar-right"
-				v-if="isDouble"
-			>
-				<div class="stub"></div>
-				<div class="calendar__bottom calendar-bottom">
-					<table class="calendar-bottom__date calendar-date">
+				<div 
+					class="calendar calendar-right"
+					v-if="isDouble"
+				>
+					<table class="calendar-date">
+						<tr class="calendar-date__day-names">
+							<td v-for="name in dayNames">
+								{{ name }}
+							</td>
+						</tr>
 						<tr
 							class="calendar-date__week"
-							v-for="week in days"
+							v-for="week in days.slice(4,)"
 						>
 							<td v-for="day in week">
 								<day-cell 
 								  :day="day"
-								  @set-day="$event => fetchSelectedDay($event)"
+								  @set-day="setDay"
+								  @hovered="hoverRange"
 								/> 
 							</td>
 						</tr>
@@ -76,44 +83,42 @@
 import DayCell from './DayCell';
 import { months } from '../config/calendar-assets.js';
 import dayjs from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
 import { getDates } from '../config/array-of-dates.js';
 import { 
 	startOfWeek,
 	endOfWeek,
 	lastDayOfMonth,
-	startOfMonth
+	startOfMonth,
+	isBetween
 } from '../config/dates-helpers.js';
 
-import {  
-	// lastDayOfMonth, // here
-	parse, // here
-	subDays // here
-} from 'date-fns';
+dayjs.extend(customParseFormat);
 
 export default {
 	components: { DayCell },
 	data() {
 		return {
-			days: [],
-			localDate: new Date(this.date),
+			localDate: null,
+			localMonth: null,
+			localYear: null,
 			localeFormat: null,
+			
+			days: [],
 			currentDate: {
 				start: null,
 				end: null
 			},
-			localMonth: null,
-			localYear: parseInt(this.formatDate(this.date, 'YYYY', { locale: this.localeFormat})),
-			selectedOption: 'one'
+			
+			selectedOption: 'one',
+			hovering: true
 		}
 	},
 	props: {
 		date: { type: [String, Date], default:() => new Date()},
 		format: { type: String, default: 'DD.MM.YYYY'},
-		range: { type: Object, default: () => ({
-			start: new Date(null),
-			end: new Date(new Date().getFullYear() + 100, 1, 1)
-		})},
-		dateDisable: { type: Object, default: () => null},
+		disableBefore: { type: [Date, String], default: () => new Date(null) },
+		disableAfter: { type: [Date, String], default: () => null},
 		isDouble: { type: Boolean, default: false},
 		locale: { type: String, default: 'ru'},
 		topButtons: { type: Boolean, default: false},
@@ -123,10 +128,13 @@ export default {
 		})}
 	},
 	created() {
-		import('date-fns/locale/' + this.locale)
+		this.localDate = this.parseDate(this.date);
+		this.localYear = this.parseDate(this.date).getFullYear();
+		this.localMonth = this.formatDate(this.parseDate(this.date), 'MMM');
+
+		import('dayjs/locale/' + this.locale)
 			.then(data => {
-				this.localeFormat  = data;
-				this.localMonth = this.formatDate(this.date, 'MMM', { locale: this.localeFormat})
+				dayjs.locale(this.locale);
 			})
 			.then(() => {
 				this.monthDays();
@@ -137,9 +145,17 @@ export default {
 	},
 	methods: {
 		chooseOption(option) {
-			this.selectedOption = option;
-			this.handleDays((day) => { day.isActive = false; });
-			window.removeEventListener('mousemove', this.hoverWhileRange);
+			if (this.selectedOption !== option) {
+				this.selectedOption = option;
+				this.handleDays((day) => { 
+					day.isActive = false;
+					day.isHovered = false; 
+				});
+				this.currentDate = {
+					start: null,
+					end: null 
+				}
+			}
 		},
  		handleDays(func = null) {
 			this.days.forEach(week => {
@@ -184,11 +200,10 @@ export default {
 			this.getYear();
 		},
 		monthDays() {
-			console.log(startOfWeek(new Date(), 1))
 			this.days = [];
 			let weekStart = this.locale !== 'en';
 			let firstDay = startOfMonth(this.localDate);
-			let prevLastDay = subDays(firstDay, 1);
+			let prevLastDay = new Date(dayjs(firstDay).subtract(1, 'day'));
 			let res = [
 			...getDates(
 				startOfWeek(
@@ -197,17 +212,48 @@ export default {
 					: firstDay 
 				), 
 				weekStart),
-				lastDayOfMonth(firstDay)
+				endOfWeek(lastDayOfMonth(
+					!this.isDouble ? firstDay : new Date(dayjs(firstDay).add(1, 'month'))
+ 				), weekStart)
 			)].map(item => {
-				let check = (this.currentDate.start && item.getTime() === this.currentDate.start.getTime())
+				let {start, end} = this.currentDate;
+
+				let checkActive = (
+					start && item.getTime() === start.getTime()
+					|| end && item.getTime() === end.getTime());
+
+				let checkHover = (
+					start && end && isBetween(start, end)(item)
+				);
+
+				let checkDisabled = this.checkDateDisabled(item);
+
 				return {
-					isActive: check,
+					isHovered: checkHover,
+					isActive: checkActive,
+					isDisabled: checkDisabled,
 					value: item
-				}
+				};
 			})
 			for (var i = 0; i < res.length - 7; i+= 7)
 				this.days.push(res.slice(i, i + 7))
 			this.days.push(res.slice(i,))
+		},
+		parseDate(str) {
+			if (str) {
+				if (str.getDate !== undefined)
+					return str; // String is actually a Date
+				return new Date(dayjs(str, this.format));
+			}
+			return null;
+		},
+		checkDateDisabled(date) {
+			let before = this.parseDate(this.disableBefore);
+			let after  = this.parseDate(this.disableAfter);
+
+			return before.getTime() > date.getTime()
+			|| after
+			&& after.getTime() < date.getTime()
 		},
 		getYear() {
 			this.localYear = this.localDate.getFullYear();
@@ -225,44 +271,55 @@ export default {
 			this.$emit('input', this.formatDate(this.currentDate.start, this.format))
 		},
 		setRange(date) {
-			if (!this.currentDate.start)
+			let { start, end } = this.currentDate;
+
+			if (start && end 
+				&& date.getTime() !== start.getTime()
+				&& date.getTime() !== end.getTime()) {
+				this.hovering = true;
+				this.currentDate.start = null;
+			}
+
+			if (!this.currentDate.start){
 				this.setOne(date);
-			window.addEventListener('mousemove', this.hoverWhileRange);
+			} else {
+				this.currentDate.end = date;
+				this.hovering = false;
+				if (date.getTime() < start.getTime())
+					[this.currentDate.end, this.currentDate.start] = [start, end];
+
+				let [s, e] = [
+					this.formatDate(this.currentDate.start, this.format),
+					this.formatDate(this.currentDate.end, this.format)
+				]
+				this.$emit('input', `${s} - ${e}`)
+			}
 		},
-		hoverWhileRange(event) {
-			console.log(event)
+		hoverRange(date) {
+			let { start } = this.currentDate;
+			if (this.selectedOption === 'range'
+				&& start !== null && this.hovering) {
+				this.handleDays((day) => {
+					if (day.value.getTime() !== date.getTime()) {
+						if (day.value.getTime() !== start.getTime())
+							day.isActive = false;
+					} else  {
+						day.isActive = true;
+						this.currentDate.end = day.value;
+					}
+				});
+
+				this.handleDays((innerDay) => {
+					let between = isBetween(start, date);
+					innerDay.isHovered = between(innerDay.value);
+				});
+			}
 		},
 		setDay(val) {
 			if (this.selectedOption === 'one')
 				this.setOne(val);
 			else if (this.selectedOption === 'range')
 				this.setRange(val);
-			// else if (this.selectedOption === 'range')
-			// 	this.setRange(val);
-			// this.days.forEach(week => {
-				// week.forEach(day => {
-				// 	if (this.selectedOption === 'one')
-				// 		this.setOneOption(val)*/
-				// 	// if (day.value.getTime() === val.getTime())
-					// 	day.isActive = true;
-					// else if (this.selectedOption === 'one')
-					// 	day.isActive = false;
-					// else if (this.selectedOption === 'range'
-					// 	&& val.getTime() !== )
-			// 	})
-			// });
-
-			// this.currentDate = val;
-			// let date = {
-			// 	start: null,
-			// 	end: null
-			// };
-
-			// if (selectedOption === 'range' && date.end)
-			// 	date.end = val;
-			// else date.start = val;
-
-			// this.$emit('input', date);
 		}
 	},
 	computed: {
@@ -314,10 +371,18 @@ $shadow: 0px 0px 3px 2px #e3e4e9;
 			}
 		}
 	}
+	&__main {
+		& > * { 
+			display: inline-block;
+	    vertical-align: top; 
+		}
+	}
 	&-top {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
+		&__nav {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+		}
 		&__arrow {
 			// background-color: $arrow;
 			padding: 14px;
