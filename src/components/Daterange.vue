@@ -16,7 +16,6 @@
 			:maxlength="10"
 			autocomplete="off"
 			@focus="openCalendar = true"
-			@blur="handleBlur"
 			:value="currentDate"
 		/>
 	</label>
@@ -27,17 +26,18 @@
 			:top-buttons="true"
 			:date="currentDate"
 			v-model="currentDate"
+			@input="$emit('input', currentDate)"
 		/>
 	</div>
 </div>
 </template>
 <script>
 import Calendar from './Calendar';
-import dayjs from 'dayjs';
-
-import customParseFormat from 'dayjs/plugin/customParseFormat';
-dayjs.extend(customParseFormat);
-
+import 
+{ 
+	formatDate, 
+	parseDate 
+} from '../config/dates-helpers'; 
 export default {
 	components: { Calendar },
 	data() { 
@@ -47,7 +47,7 @@ export default {
 			inputDate: '',
 			openCalendar: false,
 			isError: false,
-			currentDate: dayjs(new Date()).format(this.format)
+			currentDate: ''
 		} 
 	},
 	props: {
@@ -55,31 +55,30 @@ export default {
 		format: { type: String, default: 'DD.MM.YYYY'},
 		range: { type: Object, default: null},
 		placeholder: { type: String, default: ''},
-		// date: { type: String},
-		value: { type: String, default: ''},
+		value: { type: [String, Date], default: ''},
 		denominator: { type: String, default: '.'},
-		format: { type: String, default: 'DD.MM.YYYY'},
-		range: { type: Object, default: () => ({
-			start: new Date(1970, 1, 1),
-			end: new Date(new Date().getFullYear() + 100, 1, 1)
-		})},
 	},
 	watch: {
 		value(val) {
-			 if (val.length  === this.dateLen) {
-				this.openCalendar = true;
-				this.currentDate = new Date(dayjs(new Date(dayjs(val, this.format))).format(this.format));
-			}
-		}
-	},
-	methods: {
-		/*
-		 Methods for handeling input values  
-		*/
-		handleValue(val) {
 			if (val.length == 2 || val.length == 5)
 				return val + this.denominator;
 			else return val;
+		}
+	},
+	created() {
+		this.currentDate = this.value.length < this.dateLen
+		? formatDate(new Date(), this.format)
+		: this.value; 
+	},
+	methods: {
+		handleValue(val) {
+			let fVal;
+			if (val.length == 2 || val.length == 5)
+				fVal = val + this.denominator;
+			else fVal = val;
+
+			this.currentDate = fVal;
+			return fVal;
 		},
 		keyMonitor(e) {
 			let check = e.keyCode > 95 && e.keyCode < 106 
@@ -87,46 +86,9 @@ export default {
 		  || e.keyCode === 8;
 			if (!check) e.preventDefault();
 		},
-		handleBlur(e) {
-		},
-		/*
-		 Methods for dates itself  
-		*/
-		// Need to be locale over there
-		getDayOfWeek(num) {
-			let day;
-			if (this.value.length) 
-				day = new Date(this.value).getDay() + num;
-			day = new Date().getDay() + num;
-			return day.getDate();
-			return new Date(this.value) + num;
-		},
-		getMonth() {
-			let month;
-			if (this.value.length)
-				 month = new Date(this.value).getMonth();
-			month = new Date().getMonth();
-			return month;
-		},
-		getYear() {
-			let year;
-			if (this.value.length)
-				 year = new Date(this.value).getFullYear();
-			year = new Date().getFullYear();
-			return year;
-		},
-		// Validation
-		checkValid(value) {
-			return value.length;
-		},
-		handleError() {
-			this.isError = true;
-		},
-		makeMonth() {
-			if (!this.value.length) {
-				let date = new Date();
-
-			}
+		handlePropDate() {
+			let date = this.value.length ? this.value : new Date();
+			return new Date(dayjs(date, this.format))
 		}
 	},
 	computed: {

@@ -1,3 +1,8 @@
+import dayjs from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
+dayjs.extend(customParseFormat);
+
+
 const lastDayOfMonth = (date) => new Date(date.getFullYear(), date.getMonth() + 1, 0);
 const startOfMonth = (date, mondayFirst = false) => new Date(date.getFullYear(), date.getMonth(), 1 );
 
@@ -25,10 +30,25 @@ const isBetween = (d1, d2) => {
 	}
 }
 
+const parseDate = (str, format) => {
+	if (str) {
+		if (str.getDate !== undefined)
+			return str; // String is actually a Date
+		return new Date(dayjs(str, format));
+	}
+	return null;
+}
+
+const formatDate = (date, format) => {
+	return dayjs(date).format(format);
+}
+
 export {
 	startOfWeek,
 	endOfWeek,
 	lastDayOfMonth,
 	startOfMonth,
-	isBetween
+	isBetween,
+	parseDate,
+	formatDate
 };

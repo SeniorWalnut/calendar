@@ -90,7 +90,9 @@ import {
 	endOfWeek,
 	lastDayOfMonth,
 	startOfMonth,
-	isBetween
+	isBetween,
+	parseDate,
+	formatDate
 } from '../config/dates-helpers.js';
 
 dayjs.extend(customParseFormat);
@@ -127,16 +129,25 @@ export default {
 			end: null
 		})}
 	},
+	watch: {
+		date(val) {
+			if (val.length === this.format.length)
+				this.currentDate.start = parseDate(this.date, this.format);
+		}
+	},
 	created() {
-		this.localDate = this.parseDate(this.date);
-		this.localYear = this.parseDate(this.date).getFullYear();
-		this.localMonth = this.formatDate(this.parseDate(this.date), 'MMM');
+		this.localDate = parseDate(this.date, this.format);
+		this.localYear = parseDate(this.date, this.format).getFullYear();
+
+		this.currentDate.start = parseDate(this.date, this.format);
 
 		import('dayjs/locale/' + this.locale)
 			.then(data => {
 				dayjs.locale(this.locale);
 			})
 			.then(() => {
+				this.localMonth = formatDate(parseDate(this.date, this.format), 'MMM');
+				
 				this.monthDays();
 				this.handleDays((val) => {
 					val.isActive = val.value.getTime() === this.localDate.getTime() 
@@ -162,9 +173,6 @@ export default {
 				week.forEach(day => func(day))
 			})
 		},
-		formatDate(date, format) {
-			return dayjs(date).format(format);
-		},
 		prevMonth() {
 			let month = this.localDate.getMonth();
 			let year = this.localDate.getFullYear();
@@ -174,7 +182,7 @@ export default {
 			}
 			this.localDate.setMonth(month - 1);
 			this.localDate.setFullYear(year), 
-			this.localMonth = (this.formatDate(
+			this.localMonth = (formatDate(
 				this.localDate, 
 				'MMM', 
 				{ locale: this.localeFormat})
@@ -191,7 +199,7 @@ export default {
 			}
 			this.localDate.setMonth(month + 1), 
 			this.localDate.setFullYear(year), 
-			this.localMonth = (this.formatDate(
+			this.localMonth = (formatDate(
 				this.localDate,
 				'MMM', 
 				{ locale: this.localeFormat})
@@ -239,17 +247,9 @@ export default {
 				this.days.push(res.slice(i, i + 7))
 			this.days.push(res.slice(i,))
 		},
-		parseDate(str) {
-			if (str) {
-				if (str.getDate !== undefined)
-					return str; // String is actually a Date
-				return new Date(dayjs(str, this.format));
-			}
-			return null;
-		},
 		checkDateDisabled(date) {
-			let before = this.parseDate(this.disableBefore);
-			let after  = this.parseDate(this.disableAfter);
+			let before = parseDate(this.disableBefore, this.format);
+			let after  = parseDate(this.disableAfter, this.format);
 
 			return before.getTime() > date.getTime()
 			|| after
@@ -268,7 +268,7 @@ export default {
 				end: null
 			};
 
-			this.$emit('input', this.formatDate(this.currentDate.start, this.format))
+			this.$emit('input', formatDate(this.currentDate.start, this.format))
 		},
 		setRange(date) {
 			let { start, end } = this.currentDate;
@@ -289,8 +289,8 @@ export default {
 					[this.currentDate.end, this.currentDate.start] = [start, end];
 
 				let [s, e] = [
-					this.formatDate(this.currentDate.start, this.format),
-					this.formatDate(this.currentDate.end, this.format)
+					formatDate(this.currentDate.start, this.format),
+					formatDate(this.currentDate.end, this.format)
 				]
 				this.$emit('input', `${s} - ${e}`)
 			}

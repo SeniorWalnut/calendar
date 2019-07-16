@@ -3,7 +3,6 @@
     <daterange 
       title="Дата рождения"
       placeholder="Выберите дату"
-      format="DD.MM.YYYY"
       v-model="date"
     />
   </div>
