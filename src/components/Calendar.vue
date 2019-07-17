@@ -119,7 +119,7 @@ export default {
 	props: {
 		date: { type: [String, Date], default:() => new Date()},
 		format: { type: String, default: 'DD.MM.YYYY'},
-		disableBefore: { type: [Date, String], default: () => new Date(null) },
+		disableBefore: { type: [Date, String], default: () => null },
 		disableAfter: { type: [Date, String], default: () => null},
 		isDouble: { type: Boolean, default: false},
 		locale: { type: String, default: 'ru'},
@@ -129,17 +129,18 @@ export default {
 			end: null
 		})}
 	},
-	watch: {
-		date(val) {
-			if (val.length === this.format.length)
-				this.currentDate.start = parseDate(this.date, this.format);
-		}
-	},
 	created() {
 		this.localDate = parseDate(this.date, this.format);
 		this.localYear = parseDate(this.date, this.format).getFullYear();
 
-		this.currentDate.start = parseDate(this.date, this.format);
+		let after = this.disableAfter && parseDate(this.disableAfter, this.format);
+		let before = this.disableBefore && parseDate(this.disableBefore, this.format);
+
+		if (before && before.getTime() > this.localDate.getTime())
+			this.currentDate.start = before;
+		else if (after && after.getTime() < this.localDate.getTime())
+			this.currentDate.start = after;
+		else this.currentDate.start = parseDate(this.date, this.format);
 
 		import('dayjs/locale/' + this.locale)
 			.then(data => {
@@ -150,8 +151,10 @@ export default {
 				
 				this.monthDays();
 				this.handleDays((val) => {
-					val.isActive = val.value.getTime() === this.localDate.getTime() 
+					val.isActive = val.value.getTime() === this.currentDate.start.getTime()
 				})
+
+				this.$emit('input', formatDate(this.currentDate.start, this.format));
 			})
 	},
 	methods: {
@@ -251,7 +254,7 @@ export default {
 			let before = parseDate(this.disableBefore, this.format);
 			let after  = parseDate(this.disableAfter, this.format);
 
-			return before.getTime() > date.getTime()
+			return before && before.getTime() > date.getTime()
 			|| after
 			&& after.getTime() < date.getTime()
 		},

@@ -1,6 +1,10 @@
 <template>
-<div class="daterange">
-	<label class="daterange__wrap" for="daterange">
+<div 
+	class="daterange"
+>
+	<label 
+		class="daterange__wrap" for="daterange"
+	>
 		<h1 
 			class="daterange__title"
 			v-if="title"
@@ -16,7 +20,7 @@
 			:maxlength="10"
 			autocomplete="off"
 			@focus="openCalendar = true"
-			:value="currentDate"
+			:value="currentDate ? currentDate : date"
 		/>
 	</label>
 	<div class="daterange__calendar">
@@ -24,9 +28,11 @@
 			v-if="openCalendar"
 			:format="format"
 			:top-buttons="true"
-			:date="currentDate"
+			:date="date ? date : currentDate"
 			v-model="currentDate"
 			@input="$emit('input', currentDate)"
+			:is-double="true"
+			disable-after="20.07.2019"
 		/>
 	</div>
 </div>
@@ -38,6 +44,8 @@ import
 	formatDate, 
 	parseDate 
 } from '../config/dates-helpers'; 
+import { mixin as onClickOutside } from 'vue-on-click-outside'
+
 export default {
 	components: { Calendar },
 	data() { 
@@ -47,9 +55,10 @@ export default {
 			inputDate: '',
 			openCalendar: false,
 			isError: false,
-			currentDate: ''
+			currentDate: '',
 		} 
 	},
+	mixins: [onClickOutside],
 	props: {
 		title: { type: String, default: 'Daterange'},
 		format: { type: String, default: 'DD.MM.YYYY'},
@@ -57,6 +66,7 @@ export default {
 		placeholder: { type: String, default: ''},
 		value: { type: [String, Date], default: ''},
 		denominator: { type: String, default: '.'},
+		date: { type: [String, Date], default: null }
 	},
 	watch: {
 		value(val) {
@@ -71,6 +81,9 @@ export default {
 		: this.value; 
 	},
 	methods: {
+		showCalendar() {
+			this.openCalendar = false;
+		},
 		handleValue(val) {
 			let fVal;
 			if (val.length == 2 || val.length == 5)
