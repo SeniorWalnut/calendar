@@ -82,20 +82,16 @@
 
 import DayCell from './DayCell';
 import { months } from '../config/calendar-assets.js';
-import dayjs from 'dayjs';
-import customParseFormat from 'dayjs/plugin/customParseFormat';
 import { getDates } from '../config/array-of-dates.js';
+import dayjs from 'dayjs';
 import { 
 	startOfWeek,
 	endOfWeek,
 	lastDayOfMonth,
 	startOfMonth,
 	isBetween,
-	parseDate,
 	formatDate
 } from '../config/dates-helpers.js';
-
-dayjs.extend(customParseFormat);
 
 export default {
 	components: { DayCell },
@@ -108,7 +104,7 @@ export default {
 			
 			days: [],
 			currentDate: {
-				start: null,
+				start: this.value ? this.value : new Date(new Date().setHours(0, 0, 0, 0)),
 				end: null
 			},
 			
@@ -117,50 +113,46 @@ export default {
 		}
 	},
 	props: {
-		date: { type: [String, Date], default:() => new Date()},
-		format: { type: String, default: 'DD.MM.YYYY'},
-		disableBefore: { type: [Date, String], default: () => null },
-		disableAfter: { type: [Date, String], default: () => null},
+		disableBefore: { type: Date, default: () => null },
+		disableAfter: { type: Date, default: () => null},
 		isDouble: { type: Boolean, default: false},
 		locale: { type: String, default: 'ru'},
 		topButtons: { type: Boolean, default: false},
-		value: { type: [Object,String], default: () => ({
-			start: null,
-			end: null
-		})}
+		value: { type: [Object, Date], default: () => null}
 	},
 	created() {
-		this.localDate = parseDate(this.date, this.format);
-		this.localYear = parseDate(this.date, this.format).getFullYear();
+		this.localDate = this.value;
+		this.localYear = this.value.getFullYear();
 
-		let after = this.disableAfter && parseDate(this.disableAfter, this.format);
-		let before = this.disableBefore && parseDate(this.disableBefore, this.format);
+		let after = this.disableAfter;
+		let before = this.disableBefore;
 
 		if (before && before.getTime() > this.localDate.getTime())
 			this.currentDate.start = before;
 		else if (after && after.getTime() < this.localDate.getTime())
 			this.currentDate.start = after;
-		else this.currentDate.start = parseDate(this.date, this.format);
 
 		import('dayjs/locale/' + this.locale)
 			.then(data => {
 				dayjs.locale(this.locale);
 			})
 			.then(() => {
-				this.localMonth = formatDate(parseDate(this.date, this.format), 'MMM');
+				this.localMonth = formatDate(this.value, 'MMM');
 				
 				this.monthDays();
-				this.handleDays((val) => {
-					val.isActive = val.value.getTime() === this.currentDate.start.getTime()
+				this.handleDays((day) => {
+					day.value.setHours(0, 0, 0, 0);
+					day.isActive = day.value.getTime() === this.currentDate.start.getTime()
 				})
 
-				this.$emit('input', formatDate(this.currentDate.start, this.format));
+				this.$emit('input', this.currentDate.start);
 			})
 	},
 	methods: {
 		chooseOption(option) {
 			if (this.selectedOption !== option) {
 				this.selectedOption = option;
+				if (option === 'range') this.hovering = true;
 				this.handleDays((day) => { 
 					day.isActive = false;
 					day.isHovered = false; 
@@ -227,6 +219,7 @@ export default {
 					!this.isDouble ? firstDay : new Date(dayjs(firstDay).add(1, 'month'))
  				), weekStart)
 			)].map(item => {
+
 				let {start, end} = this.currentDate;
 
 				let checkActive = (
@@ -251,8 +244,8 @@ export default {
 			this.days.push(res.slice(i,))
 		},
 		checkDateDisabled(date) {
-			let before = parseDate(this.disableBefore, this.format);
-			let after  = parseDate(this.disableAfter, this.format);
+			let before = this.disableBefore;
+			let after  = this.disableAfter;
 
 			return before && before.getTime() > date.getTime()
 			|| after
@@ -271,7 +264,7 @@ export default {
 				end: null
 			};
 
-			this.$emit('input', formatDate(this.currentDate.start, this.format))
+			this.$emit('input', this.currentDate.start)
 		},
 		setRange(date) {
 			let { start, end } = this.currentDate;
@@ -292,10 +285,10 @@ export default {
 					[this.currentDate.end, this.currentDate.start] = [start, end];
 
 				let [s, e] = [
-					formatDate(this.currentDate.start, this.format),
-					formatDate(this.currentDate.end, this.format)
+					this.currentDate.start,
+					this.currentDate.end
 				]
-				this.$emit('input', `${s} - ${e}`)
+				this.$emit('input', {start: s, end: e})
 			}
 		},
 		hoverRange(date) {

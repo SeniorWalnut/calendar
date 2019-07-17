@@ -14,25 +14,23 @@
 			type="text" 
 			class="daterange__input"
 			:class="{'daterange_error': isError}"
-			@input="$emit('input', handleValue($event.target.value))"
+			@input="handleValue($event.target.value)"
 			:placeholder="placeholder"
 			@keydown="keyMonitor"
 			:maxlength="10"
 			autocomplete="off"
 			@focus="openCalendar = true"
-			:value="currentDate ? currentDate : date"
+			:value="handleDate(currentDate)"
 		/>
 	</label>
 	<div class="daterange__calendar">
 		<calendar
 			v-if="openCalendar"
-			:format="format"
 			:top-buttons="true"
-			:date="date ? date : currentDate"
 			v-model="currentDate"
-			@input="$emit('input', currentDate)"
 			:is-double="true"
-			disable-after="20.07.2019"
+			:disable-after="handleDateString(disableAfter)"
+			:disable-before="handleDateString(disableBefore)"
 		/>
 	</div>
 </div>
@@ -44,6 +42,9 @@ import
 	formatDate, 
 	parseDate 
 } from '../config/dates-helpers'; 
+import dayjs from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
+dayjs.extend(customParseFormat);
 import { mixin as onClickOutside } from 'vue-on-click-outside'
 
 export default {
@@ -55,53 +56,58 @@ export default {
 			inputDate: '',
 			openCalendar: false,
 			isError: false,
-			currentDate: '',
+			currentDate: ''
 		} 
 	},
 	mixins: [onClickOutside],
 	props: {
 		title: { type: String, default: 'Daterange'},
 		format: { type: String, default: 'DD.MM.YYYY'},
+		disableAfter: {type: [String, Date], default:  null},
+		disableBefore: {type: [String, Date], default: null},
 		range: { type: Object, default: null},
 		placeholder: { type: String, default: ''},
-		value: { type: [String, Date], default: ''},
+		value: { type: [String, Date], default:() => new Date()},
 		denominator: { type: String, default: '.'},
-		date: { type: [String, Date], default: null }
-	},
-	watch: {
-		value(val) {
-			if (val.length == 2 || val.length == 5)
-				return val + this.denominator;
-			else return val;
-		}
 	},
 	created() {
-		this.currentDate = this.value.length < this.dateLen
-		? formatDate(new Date(), this.format)
-		: this.value; 
+		if (typeof this.value.getTime === "function")
+			this.currentDate = this.value;
+		else {
+			this.currentDate = this.handleDateString(this.value);
+		}
+		
 	},
 	methods: {
+		handleDateString(dis) {
+			let formatted = dis.length ? parseDate(dis, this.format) : new Date().setHours(0, 0, 0, 0);
+
+			return new Date(formatted);
+		},
+		handleDate(date) {
+			if (typeof date.getTime === "function")
+				return formatDate(date, this.format)
+			else if (date.length) return date;
+			else {
+				let s = date.end.getTime() < date.start.getTime() ? date.end : date.start;
+				let e = date.end.getTime() < date.start.getTime() ? date.start : date.end;
+				[s, e] = [formatDate(date.start, this.format), formatDate(date.end, this.format)];
+				return `${s} - ${e}`
+			} 
+		},
 		showCalendar() {
 			this.openCalendar = false;
 		},
 		handleValue(val) {
-			let fVal;
-			if (val.length == 2 || val.length == 5)
-				fVal = val + this.denominator;
-			else fVal = val;
-
-			this.currentDate = fVal;
-			return fVal;
+			if (this.curOption === 'one')
+				this.handleOneVal(val);
+			else this.handleRangeVal(val);
 		},
 		keyMonitor(e) {
 			let check = e.keyCode > 95 && e.keyCode < 106 
 			|| e.keyCode > 47 && e.keyCode < 58
 		  || e.keyCode === 8;
 			if (!check) e.preventDefault();
-		},
-		handlePropDate() {
-			let date = this.value.length ? this.value : new Date();
-			return new Date(dayjs(date, this.format))
 		}
 	},
 	computed: {

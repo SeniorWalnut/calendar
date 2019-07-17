@@ -17,7 +17,7 @@ export default {
   },
   data() {
     return {
-      date: ''
+      date: '03.05.1998'
     }
   }
 }
