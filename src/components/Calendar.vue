@@ -175,10 +175,14 @@ export default {
 				month = 12;
 				year -= 1;
 			}
-			this.localDate.setMonth(month - 1);
-			this.localDate.setFullYear(year), 
+
+			let date = new Date();
+			date.setMonth(month - 1);
+			date.setFullYear(year);
+
+			this.localDate = date;
 			this.localMonth = (formatDate(
-				this.localDate, 
+				date, 
 				'MMM', 
 				{ locale: this.localeFormat})
 			);
@@ -192,8 +196,13 @@ export default {
 				month = -1
 				year += 1;
 			}
-			this.localDate.setMonth(month + 1), 
-			this.localDate.setFullYear(year), 
+
+			let date = new Date();
+
+			date.setMonth(month + 1); 
+			date.setFullYear(year);
+
+			this.localDate = date;
 			this.localMonth = (formatDate(
 				this.localDate,
 				'MMM', 

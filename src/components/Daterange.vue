@@ -3,7 +3,8 @@
 	class="daterange"
 >
 	<label 
-		class="daterange__wrap" for="daterange"
+		class="daterange__wrap" 
+		for="daterange"
 	>
 		<h1 
 			class="daterange__title"
@@ -29,8 +30,8 @@
 			:top-buttons="true"
 			v-model="currentDate"
 			:is-double="true"
-			:disable-after="handleDateString(disableAfter)"
-			:disable-before="handleDateString(disableBefore)"
+			:disable-after="disableAfter ? handleDateString(disableAfter) : null"
+			:disable-before="disableBefore ? handleDateString(disableBefore) : null"
 		/>
 	</div>
 </div>
@@ -56,13 +57,13 @@ export default {
 			inputDate: '',
 			openCalendar: false,
 			isError: false,
-			currentDate: ''
+			currentDate: '',
+			format: 'DD.MM.YYYY'
 		} 
 	},
 	mixins: [onClickOutside],
 	props: {
 		title: { type: String, default: 'Daterange'},
-		format: { type: String, default: 'DD.MM.YYYY'},
 		disableAfter: {type: [String, Date], default:  null},
 		disableBefore: {type: [String, Date], default: null},
 		range: { type: Object, default: null},
