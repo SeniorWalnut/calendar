@@ -20,8 +20,8 @@
 			@keydown="keyMonitor"
 			:maxlength="10"
 			autocomplete="off"
-			@focus="openCalendar = true"
-			:value="handleDate(currentDate)"
+			@focus="openCalendar = true;"
+			:value="currentInputDate ? handleDate(currentInputDate) : handleDate(currentDate)"
 		/>
 	</label>
 	<div class="daterange__calendar">
@@ -29,9 +29,13 @@
 			v-if="openCalendar"
 			:top-buttons="true"
 			v-model="currentDate"
+			@input="$emit('input', handleDate(currentDate))"
+			@clear="currentInputDate = ''"
 			:is-double="true"
 			:disable-after="disableAfter ? handleDateString(disableAfter) : null"
 			:disable-before="disableBefore ? handleDateString(disableBefore) : null"
+			:locale="locale"
+			@close="openCalendar = false"
 		/>
 	</div>
 </div>
@@ -41,12 +45,12 @@ import Calendar from './Calendar';
 import 
 { 
 	formatDate, 
-	parseDate 
+	parseDate,
+	isBetween
 } from '../config/dates-helpers'; 
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 dayjs.extend(customParseFormat);
-import { mixin as onClickOutside } from 'vue-on-click-outside'
 
 export default {
 	components: { Calendar },
@@ -54,6 +58,7 @@ export default {
 		return {
 			currentRange: {},
 			currentDate: '',
+			currentInputDate: '',
 			inputDate: '',
 			openCalendar: false,
 			isError: false,
@@ -61,7 +66,6 @@ export default {
 			format: 'DD.MM.YYYY'
 		} 
 	},
-	mixins: [onClickOutside],
 	props: {
 		title: { type: String, default: 'Daterange'},
 		disableAfter: {type: [String, Date], default:  null},
@@ -70,6 +74,7 @@ export default {
 		placeholder: { type: String, default: ''},
 		value: { type: [String, Date], default:() => new Date()},
 		denominator: { type: String, default: '.'},
+		locale: { type: String, default: 'en'},
 	},
 	created() {
 		if (typeof this.value.getTime === "function")
@@ -77,7 +82,6 @@ export default {
 		else {
 			this.currentDate = this.handleDateString(this.value);
 		}
-		
 	},
 	methods: {
 		handleDateString(dis) {
@@ -96,19 +100,48 @@ export default {
 				return `${s} - ${e}`
 			} 
 		},
-		showCalendar() {
-			this.openCalendar = false;
-		},
 		handleValue(val) {
-			if (this.curOption === 'one')
-				this.handleOneVal(val);
-			else this.handleRangeVal(val);
+			if (val.length === 2 || val.length === 5)
+				val += '.';
+			this.currentInputDate = val;
+
+			if (this.currentInputDate.length === this.format.length) {
+				if (this.checkInputDate()) {
+					this.currentDate = parseDate(this.currentInputDate, this.format);
+					this.$emit('input', this.handleDate(this.currentDate));
+					this.openCalendar = false;
+				} else {
+					this.currentInputDate = '';
+					this.currentDate = new Date(new Date().setHours(0, 0, 0, 0));
+					this.$emit('input', formatDate(this.currentDate));
+					this.openCalendar = false;
+				}
+			}
 		},
 		keyMonitor(e) {
 			let check = e.keyCode > 95 && e.keyCode < 106 
 			|| e.keyCode > 47 && e.keyCode < 58
 		  || e.keyCode === 8;
 			if (!check) e.preventDefault();
+		},
+		checkInputDate() {
+			function isValidDate(d) {
+  			return d instanceof Date && !isNaN(d);
+			}			
+
+			let d = new Date();
+			d.setFullYear(new Date().getFullYear());
+
+			let disableB = this.disableBefore ? this.disableBefore : new Date(null);
+			let disbleA = this.disableAfter  ? this.disableAfter : d;
+
+			let between = isBetween(
+				disableB,
+				disbleA
+			)
+
+			return between(parseDate(this.currentInputDate, this.format)) 
+			&& isValidDate(parseDate(this.currentInputDate, this.format));
 		}
 	},
 	computed: {

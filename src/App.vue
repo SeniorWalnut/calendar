@@ -4,7 +4,7 @@
       title="Дата рождения"
       placeholder="DD.MM.YYYY"
       v-model="date"
-      disable-after="20.07.2019"
+      locale="en"
     />
   </div>
 </template>
@@ -18,7 +18,7 @@ export default {
   },
   data() {
     return {
-      date: ''
+      date: '',
     }
   }
 }

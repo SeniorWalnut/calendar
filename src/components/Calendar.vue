@@ -76,6 +76,10 @@
 					</table>
 				</div>
 			</div>
+			<div 
+				class="close-button"
+				@click="$emit('close')"
+			></div>
 	</div>
 </template>
 <script>
@@ -116,9 +120,9 @@ export default {
 		disableBefore: { type: Date, default: () => null },
 		disableAfter: { type: Date, default: () => null},
 		isDouble: { type: Boolean, default: false},
-		locale: { type: String, default: 'ru'},
+		locale: { type: String, default: 'en'},
 		topButtons: { type: Boolean, default: false},
-		value: { type: [Object, Date], default: () => null}
+		value: { type: [Object, Date, String], default: () => null}
 	},
 	created() {
 		this.localDate = this.value;
@@ -273,7 +277,7 @@ export default {
 				end: null
 			};
 
-			this.$emit('input', this.currentDate.start)
+			this.$emit('input', this.currentDate.start);
 		},
 		setRange(date) {
 			let { start, end } = this.currentDate;
@@ -325,6 +329,8 @@ export default {
 				this.setOne(val);
 			else if (this.selectedOption === 'range')
 				this.setRange(val);
+
+			this.$emit('clear');
 		}
 	},
 	computed: {
@@ -351,6 +357,7 @@ $shadow: 0px 0px 3px 2px #e3e4e9;
 		width: max-content;
 		padding: 20px 25px;
     box-shadow: $shadow; 
+    position: relative;
 	}
 	&-buttons {
 		margin-bottom: 15px;
@@ -447,6 +454,32 @@ $shadow: 0px 0px 3px 2px #e3e4e9;
 			vertical-align: middle;
 			text-align: center;
 		}
+	}
+	
+}
+
+.close-button {
+	position: absolute;
+  top: 15px;
+  right: 25px;
+  padding: 10px;
+  cursor: pointer;
+  &::after,
+  &::before {
+  	content: '';
+    display: block;
+    height: 15px;
+    width: 2px;
+    border-radius: 2px;
+    position: absolute;
+    background-color: black;
+  }
+
+  &::before {
+  	transform: translate(-50%, -50%) rotate(45deg);
+  }
+	&::after {
+  	transform: translate(-50%, -50%) rotate(-45deg);
 	}
 }
 </style>
