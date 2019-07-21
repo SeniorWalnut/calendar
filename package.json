@@ -1,6 +1,8 @@
 {
-  "name": "calendar",
+  "name": "vue-daterange",
   "version": "0.1.0",
+  "author": "SeniorWalnut",
+  "description": "Very useful datepicker written on Vue.js",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
@@ -12,21 +14,24 @@
     "dayjs": "^1.8.15",
     "node-sass": "^4.12.0",
     "sass-loader": "^7.1.0",
-    "vue": "^2.6.10",
-    "vue-on-click-outside": "^1.0.3"
+    "vue": "^2.6.10"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "^3.9.0",
     "@vue/cli-service": "^3.9.0",
     "vue-template-compiler": "^2.6.10"
   },
-  "postcss": {
-    "plugins": {
-      "autoprefixer": {}
-    }
-  },
   "browserslist": [
     "> 1%",
     "last 2 versions"
+  ],
+  "keywords": [
+    "daterange",
+    "datepicker",
+    "calendar",
+    "vue-calendar",
+    "vue-daterange",
+    "vue-datepicker",
+    "vue"
   ]
 }
