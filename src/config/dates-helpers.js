@@ -30,6 +30,10 @@ const isBetween = (d1, d2) => {
 	}
 }
 
+const isValidDate = (date) => {
+  return date && Object.prototype.toString.call(date) === "[object Date]" && !isNaN(date);
+}
+
 const parseDate = (str, format) => {
 	if (str) {
 		if (str.getDate !== undefined)
@@ -47,6 +51,7 @@ export {
 	startOfWeek,
 	endOfWeek,
 	lastDayOfMonth,
+	isValidDate,
 	startOfMonth,
 	isBetween,
 	parseDate,

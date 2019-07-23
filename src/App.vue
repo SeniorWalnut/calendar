@@ -3,7 +3,8 @@
     <daterange 
       title="Дата рождения"
       placeholder="DD.MM.YYYY"
-      v-model="date"
+      :value="date"
+      @input="date = $event"
       locale="en"
     />
   </div>

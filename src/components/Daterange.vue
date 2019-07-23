@@ -21,7 +21,7 @@
 			:maxlength="10"
 			autocomplete="off"
 			@focus="openCalendar = true;"
-			:value="currentInputDate ? handleDate(currentInputDate) : handleDate(currentDate)"
+			:value="currentInputDate"
 		/>
 	</label>
 	<div class="daterange__calendar">
@@ -29,13 +29,12 @@
 			v-if="openCalendar"
 			:top-buttons="true"
 			v-model="currentDate"
-			@input="$emit('input', handleDate(currentDate))"
-			@clear="currentInputDate = ''"
+			@input="$emit('input', handleDate($event))"
 			:is-double="false"
 			:disable-after="disableAfter ? handleDateString(disableAfter) : null"
 			:disable-before="disableBefore ? handleDateString(disableBefore) : null"
 			:locale="locale"
-			@close="openCalendar = false"
+			@close="handleClose"
 		/>
 	</div>
 </div>
@@ -46,7 +45,8 @@ import
 { 
 	formatDate, 
 	parseDate,
-	isBetween
+	isBetween,
+	isValidDate
 } from '../config/dates-helpers'; 
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
@@ -57,7 +57,7 @@ export default {
 	data() { 
 		return {
 			currentRange: {},
-			currentDate: '',
+			currentDate: {},
 			currentInputDate: '',
 			inputDate: '',
 			openCalendar: false,
@@ -72,33 +72,49 @@ export default {
 		disableBefore: {type: [String, Date], default: null},
 		range: { type: Object, default: null},
 		placeholder: { type: String, default: ''},
-		value: { type: [String, Date], default:() => new Date()},
+		value: { type: [String, Date, Object], default: ''},
 		denominator: { type: String, default: '.'},
 		locale: { type: String, default: 'en'},
 	},
 	created() {
-		if (typeof this.value.getTime === "function")
-			this.currentDate = this.value;
-		else {
-			this.currentDate = this.handleDateString(this.value);
+		this.currentDate = {
+			start: null,
+			end: null
+		};
+		
+		if (typeof this.value === 'string') {
+			this.currentDate.start = this.handleDateString(this.value);
+			if (!this.value.length) {
+				this.currentDate.start = new Date(new Date().setHours(0, 0, 0, 0));
+				this.currentInputDate = '';
+			}	else
+				this.currentInputDate = this.value;
+		} else {
+			this.currentDate.start = this.value;
+			this.currentInputDate = formatDate(this.currentDate.start, this.format)
 		}
 	},
 	methods: {
 		handleDateString(dis) {
-			let formatted = dis.length ? parseDate(dis, this.format) : new Date().setHours(0, 0, 0, 0);
-
-			return new Date(formatted);
+			if (dis.length)
+				return new Date(parseDate(dis, this.format))
+			else null;
 		},
 		handleDate(date) {
-			if (typeof date.getTime === "function")
-				return formatDate(date, this.format)
-			else if (date.length) return date;
-			else {
+  		if (date.end) {
 				let s = date.end.getTime() < date.start.getTime() ? date.end : date.start;
 				let e = date.end.getTime() < date.start.getTime() ? date.start : date.end;
-				[s, e] = [formatDate(date.start, this.format), formatDate(date.end, this.format)];
-				return `${s} - ${e}`
-			} 
+				this.currentInputDate = `${formatDate(s, this.format)} - ${formatDate(e, this.format)}`;
+				return {start: s, end: e};
+			} else {
+				this.currentInputDate = formatDate(date.start, this.format);
+				return date.start;
+			}
+		},
+		handleClose() {
+			if (this.value.length)
+				this.currentInputDate = '';
+			this.openCalendar = false;
 		},
 		handleValue(val) {
 			if (val.length === 2 || val.length === 5)
@@ -107,15 +123,13 @@ export default {
 
 			if (this.currentInputDate.length === this.format.length) {
 				if (this.checkInputDate()) {
-					this.currentDate = parseDate(this.currentInputDate, this.format);
-					this.$emit('input', this.handleDate(this.currentDate));
-					this.openCalendar = false;
+					this.currentDate.start = this.handleDateString(this.currentInputDate);
 				} else {
 					this.currentInputDate = '';
-					this.currentDate = new Date(new Date().setHours(0, 0, 0, 0));
-					this.$emit('input', formatDate(this.currentDate));
-					this.openCalendar = false;
+					this.currentDate.start = new Date(new Date().setHours(0, 0, 0, 0));				
 				}
+				this.$emit('input', this.handleDate(this.currentDate));
+				this.openCalendar = false;
 			}
 		},
 		keyMonitor(e) {
@@ -124,24 +138,21 @@ export default {
 		  || e.keyCode === 8;
 			if (!check) e.preventDefault();
 		},
-		checkInputDate() {
-			function isValidDate(d) {
-  			return d instanceof Date && !isNaN(d);
-			}			
-
+		checkInputDate() {		
 			let d = new Date();
 			d.setFullYear(new Date().getFullYear());
 
-			let disableB = this.disableBefore ? parseDate(this.disableBefore, this.format) : new Date(d.setFullYear(new Date().getFullYear() - 100));;
-			let disbleA = this.disableAfter  ? parseDate(this.disableAfter, this.format) : d;
+			let disableB = this.disableBefore ? parseDate(this.disableBefore, this.format) : new Date(new Date().setFullYear(new Date().getFullYear() - 100));;
+			let disableA = this.disableAfter  ? parseDate(this.disableAfter, this.format) : d;
 
 			let between = isBetween(
 				disableB,
-				disbleA
+				disableA
 			)
 
-			return between(parseDate(this.currentInputDate, this.format)) 
-			&& isValidDate(parseDate(this.currentInputDate, this.format));
+			let parsed = parseDate(this.currentInputDate, this.format);
+			return between(parsed) 
+			&& isValidDate(parsed);
 		}
 	},
 	computed: {
