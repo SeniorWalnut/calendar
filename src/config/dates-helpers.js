@@ -43,6 +43,11 @@ const parseDate = (str, format) => {
 	return null;
 }
 
+const isValidDate = (date) => {
+  return date && Object.prototype.toString.call(date) === "[object Date]" && !isNaN(date);
+}
+
+
 const formatDate = (date, format) => {
 	return dayjs(date).format(format);
 }
@@ -55,5 +60,6 @@ export {
 	startOfMonth,
 	isBetween,
 	parseDate,
-	formatDate
+	formatDate,
+	isValidDate
 };

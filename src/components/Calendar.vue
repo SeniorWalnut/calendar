@@ -1,22 +1,6 @@
 <template>
 		<div class="calendar-wrapper">
 			<div class="calendar__top calendar-top">
-				<div 
-					class="calendar-buttons"
-					v-if="topButtons"
-				>
-					<div 
-							class="calendar-buttons__one"
-							@click="chooseOption('one')"
-							:class="{active: selectedOption === 'one'}"
-						>One
-					</div>
-					<div 
-							class="calendar-buttons__range"
-							@click="chooseOption('range')"
-							:class="{active: selectedOption === 'range'}"
-						>Range</div>
-					</div>
 				<div class="calendar-top__nav">
 					<div 
 						class="calendar-top__arrow left"
@@ -30,7 +14,7 @@
 				</div>
 			</div>
 			<div class="calendar__main">
-				<div class="calendar calendar-left">
+				<div class="calendar">
 					<table class="calendar-date">
 						<tr class="calendar-date__day-names">
 							<td v-for="name in dayNames">
@@ -39,31 +23,7 @@
 						</tr>
 						<tr
 							class="calendar-date__week"
-							v-for="week in days.slice(0, 5)"
-						>
-							<td v-for="day in week">
-								<day-cell 
-								  :day="day"
-								  @set-day="setDay"
-								  @hovered="hoverRange"
-								/> 
-							</td>
-						</tr>
-					</table>
-				</div>
-				<div 
-					class="calendar calendar-right"
-					v-if="isDouble"
-				>
-					<table class="calendar-date">
-						<tr class="calendar-date__day-names">
-							<td v-for="name in dayNames">
-								{{ name }}
-							</td>
-						</tr>
-						<tr
-							class="calendar-date__week"
-							v-for="week in days.slice(4,)"
+							v-for="week in days"
 						>
 							<td v-for="day in week">
 								<day-cell 
@@ -109,7 +69,6 @@ export default {
 			
 			days: [],
 			currentDate: null,
-			
 			selectedOption: 'one',
 			hovering: true
 		}
@@ -117,10 +76,10 @@ export default {
 	props: {
 		disableBefore: { type: Date, default: () => null },
 		disableAfter: { type: Date, default: () => null},
-		isDouble: { type: Boolean, default: false},
 		locale: { type: String, default: 'en'},
 		topButtons: { type: Boolean, default: false},
 		value: { type: [Object], default: null}
+
 	},
 	created() {
 		this.currentDate = this.value;
@@ -131,6 +90,7 @@ export default {
 		this.localMonth = formatDate(this.localDate, 'MMM');
 		if (this.value.end)
 			this.selectedOption = "range";
+
 		this.localYear = this.localDate.getFullYear()
 
 		let after = this.disableAfter;
@@ -146,13 +106,13 @@ export default {
 				dayjs.locale(this.locale);
 			})
 			.then(() => {
-				
 				this.monthDays();
 				this.handleDays((day) => {
 					day.value.setHours(0, 0, 0, 0);
 					day.isActive = day.value.getTime() === this.currentDate.start.getTime()
 					|| this.currentDate.end && day.value.getTime() === this.currentDate.end.getTime()
 				})
+<<<<<<< HEAD
 
 			})
 	},
@@ -173,7 +133,9 @@ export default {
 				this.$emit('input', this.currentDate);
 				this.monthDays();
 			}
-		},
+		}
+	},
+	methods: {
  		handleDays(func = null) {
 			this.days.forEach(week => {
 				week.forEach(day => func(day))
@@ -244,7 +206,8 @@ export default {
 
 				let checkActive = (
 					start && item.getTime() === start.getTime()
-					|| end && item.getTime() === end.getTime());
+					|| end && item.getTime() === end.getTime()
+				);
 
 				let checkHover = (
 					start && end && isBetween(start, end)(item)

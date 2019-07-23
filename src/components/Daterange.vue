@@ -63,7 +63,8 @@ export default {
 			openCalendar: false,
 			isError: false,
 			currentDate: '',
-			format: 'DD.MM.YYYY'
+			format: 'DD.MM.YYYY',
+			selectedOption: 'one'
 		} 
 	},
 	props: {
@@ -75,6 +76,8 @@ export default {
 		value: { type: [String, Date, Object], default: ''},
 		denominator: { type: String, default: '.'},
 		locale: { type: String, default: 'en'},
+		isDouble: { type: Boolean, default: false},
+		topButtons: { type: Boolean, default: false}
 	},
 	created() {
 		this.currentDate = {
@@ -127,6 +130,7 @@ export default {
 				} else {
 					this.currentInputDate = '';
 					this.currentDate.start = new Date(new Date().setHours(0, 0, 0, 0));				
+
 				}
 				this.$emit('input', this.handleDate(this.currentDate));
 				this.openCalendar = false;
@@ -149,7 +153,7 @@ export default {
 				disableB,
 				disableA
 			)
-
+			
 			let parsed = parseDate(this.currentInputDate, this.format);
 			return between(parsed) 
 			&& isValidDate(parsed);
@@ -158,6 +162,22 @@ export default {
 	computed: {
 		dateLen() {
 			return this.format.length;
+		},
+		nextCurrentDate() {
+			let year = this.currentDate.start.getFullYear();
+			let month = this.currentDate.start.getMonth();
+			if (month === 11) {
+				month = -1;
+				year += 1
+			} 
+
+			let d = new Date();
+			d.setMonth(month + 1);
+			d.setFullYear(year);
+			return {
+				start: new Date(d),
+				end: null
+			}
 		}
 	}
 }
@@ -181,6 +201,7 @@ $errorColor: red;
 	}
 	&__calendar {
 		width: max-content;
+		display: flex;
 	}
 	&__input {
 		padding: 11px 0 13px 9px;
