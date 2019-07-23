@@ -31,7 +31,7 @@
 			v-model="currentDate"
 			@input="$emit('input', handleDate(currentDate))"
 			@clear="currentInputDate = ''"
-			:is-double="true"
+			:is-double="false"
 			:disable-after="disableAfter ? handleDateString(disableAfter) : null"
 			:disable-before="disableBefore ? handleDateString(disableBefore) : null"
 			:locale="locale"
@@ -132,8 +132,8 @@ export default {
 			let d = new Date();
 			d.setFullYear(new Date().getFullYear());
 
-			let disableB = this.disableBefore ? this.disableBefore : new Date(null);
-			let disbleA = this.disableAfter  ? this.disableAfter : d;
+			let disableB = this.disableBefore ? parseDate(this.disableBefore, this.format) : new Date(d.setFullYear(new Date().getFullYear() - 100));;
+			let disbleA = this.disableAfter  ? parseDate(this.disableAfter, this.format) : d;
 
 			let between = isBetween(
 				disableB,
