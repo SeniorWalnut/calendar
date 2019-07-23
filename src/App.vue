@@ -7,6 +7,7 @@
       @input="date = $event"
       locale="en"
       :is-double="true"
+      :top-buttons="true"
     />
   </div>
 </template>

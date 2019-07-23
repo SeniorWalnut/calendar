@@ -1,22 +1,6 @@
 <template>
 		<div class="calendar-wrapper">
 			<div class="calendar__top calendar-top">
-				<div 
-					class="calendar-buttons"
-					v-if="topButtons"
-				>
-					<div 
-							class="calendar-buttons__one"
-							@click="chooseOption('one')"
-							:class="{active: selectedOption === 'one'}"
-						>One
-					</div>
-					<div 
-							class="calendar-buttons__range"
-							@click="chooseOption('range')"
-							:class="{active: selectedOption === 'range'}"
-						>Range</div>
-					</div>
 				<div class="calendar-top__nav">
 					<div 
 						class="calendar-top__arrow left"
@@ -94,7 +78,8 @@ export default {
 		disableAfter: { type: Date, default: () => null},
 		locale: { type: String, default: 'en'},
 		topButtons: { type: Boolean, default: false},
-		value: { type: [Object], default: null}
+		value: { type: [Object], default: null},
+		selectedOption: { type: String, default: 'one'},
 	},
 	created() {
 		this.currentDate = this.value;
@@ -131,24 +116,24 @@ export default {
 				})
 			})
 	},
-	methods: {
-		chooseOption(option) {
-			if (this.selectedOption !== option) {
-				this.selectedOption = option;
-				if (option === 'range') this.hovering = true;
-				this.handleDays((day) => { 
-					day.isActive = false;
-					day.isHovered = false; 
-				});
-				this.currentDate = {
-					start: this.value.start,
-					end: null 
-				}
-
-				this.$emit('input', this.currentDate);
-				this.monthDays();
+	watch: {
+		selectedOption(option) {
+			this.selectedOption = option;
+			if (option === 'range') this.hovering = true;
+			this.handleDays((day) => { 
+				day.isActive = false;
+				day.isHovered = false; 
+			});
+			this.currentDate = {
+				start: this.value.start,
+				end: null 
 			}
-		},
+
+			this.$emit('input', this.currentDate);
+			this.monthDays();
+		}
+	},
+	methods: {
  		handleDays(func = null) {
 			this.days.forEach(week => {
 				week.forEach(day => func(day))

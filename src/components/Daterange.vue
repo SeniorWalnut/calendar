@@ -29,24 +29,43 @@
 		class="daterange__calendar"
 		v-if="openCalendar"
 	>
-		<calendar
-			:top-buttons="true"
-			v-model="currentDate"
-			@input="$emit('input', handleDate($event))"
-			:disable-after="disableAfter ? handleDateString(disableAfter) : null"
-			:disable-before="disableBefore ? handleDateString(disableBefore) : null"
-			:locale="locale"
-			@close="handleClose"
-		/>
-		<calendar
-				v-if="isDouble"
-				:value="nextCurrentDate"
+		<div class="daterange-main">
+			<div 
+				class="daterange-main__buttons"
+				v-if="topButtons"
+			>
+				<div 
+						class="daterange-main__button"
+						@click="selectedOption = 'one'"
+						:class="{active: selectedOption === 'one'}"
+					>One
+				</div>
+				<div 
+						class="daterange-main__button"
+						@click="selectedOption = 'range'"
+						:class="{active: selectedOption === 'range'}"
+					>Range</div>
+				</div>
+			</div>
+			<calendar
+				v-model="currentDate"
 				@input="$emit('input', handleDate($event))"
 				:disable-after="disableAfter ? handleDateString(disableAfter) : null"
 				:disable-before="disableBefore ? handleDateString(disableBefore) : null"
 				:locale="locale"
 				@close="handleClose"
+				:class="{'double':isDouble}"
 			/>
+			<calendar
+					v-if="isDouble"
+					:value="nextCurrentDate"
+					@input="$emit('input', handleDate($event))"
+					:disable-after="disableAfter ? handleDateString(disableAfter) : null"
+					:disable-before="disableBefore ? handleDateString(disableBefore) : null"
+					:locale="locale"
+					@close="handleClose"
+				/>
+		</div>
 	</div>
 	</div>
 </div>
@@ -75,7 +94,8 @@ export default {
 			openCalendar: false,
 			isError: false,
 			currentDate: '',
-			format: 'DD.MM.YYYY'
+			format: 'DD.MM.YYYY',
+			selectedOption: 'one'
 		} 
 	},
 	props: {
@@ -88,6 +108,7 @@ export default {
 		denominator: { type: String, default: '.'},
 		locale: { type: String, default: 'en'},
 		isDouble: { type: Boolean, default: false},
+		topButtons: { type: Boolean, default: false}
 	},
 	created() {
 		this.currentDate = {
