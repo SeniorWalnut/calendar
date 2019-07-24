@@ -17,64 +17,73 @@
 							:class="{active: selectedOption === 'range'}"
 						>Range</div>
 					</div>
-				<div class="calendar-top__nav">
+			</div>
+			<div class="calendar-main">
+				<div class="calendar-main__top">
 					<div 
-						class="calendar-top__arrow left"
+						class="calendar__arrow left"
 						@click="prevMonth"
 					></div>
 					<div 
-						class="calendar-top__arrow right"
-						@click="nextMonth"
-					></div>
+						class="calendar__month"
+						:class="{'doubled-left': isDouble}"
+					>{{ localMonth }}, {{ localYear }}</div>
+					<div 
+						v-if="isDouble" 
+						class="calendar__month"
+						:class="{'doubled-right': isDouble}"
+					>{{localMonth}}, {{ localYear }}</div>
+					<div 
+					class="calendar__arrow right"
+					@click="nextMonth"
+				></div>
 				</div>
-			</div>
-			<div class="calendar__main">
-				<div class="calendar calendar-left">
-					<div class="calendar-top__month">{{ localMonth }}, {{ localYear }}</div>
-					<table class="calendar-date">
-						<tr class="calendar-date__day-names">
-							<td v-for="name in dayNames">
+				<div class="calendar-main__calendars">
+					<div class="calendar calendar-left">
+						<div class="calendar-date__day-names">
+							<div v-for="name in dayNames">
 								{{ name }}
-							</td>
-						</tr>
-						<tr
-							class="calendar-date__week"
-							v-for="week in days.slice(0, 5)"
-						>
-							<td v-for="day in week">
-								<day-cell 
-								  :day="day"
-								  @set-day="setDay"
-								  @hovered="hoverRange"
-								/> 
-							</td>
-						</tr>
-					</table>
-				</div>
-				<div 
-					class="calendar calendar-right"
-					v-if="isDouble"
-				>
-					<div class="calendar-top__month">{{ localMonth }}, {{ localYear }}</div>
-					<table class="calendar-date">
-						<tr class="calendar-date__day-names">
-							<td v-for="name in dayNames">
+							</div>
+						</div>
+						<table class="calendar-date">
+							<tr
+								class="calendar-date__week"
+								v-for="week in days.slice(0, 5)"
+							>
+								<td v-for="day in week">
+									<day-cell 
+									  :day="day"
+									  @set-day="setDay"
+									  @hovered="hoverRange"
+									/> 
+								</td>
+							</tr>
+						</table>
+					</div>
+					<div 
+						class="calendar calendar-right"
+						v-if="isDouble"
+					>
+						<div class="calendar-date__day-names">
+							<div v-for="name in dayNames">
 								{{ name }}
-							</td>
-						</tr>
-						<tr
-							class="calendar-date__week"
-							v-for="week in days.slice(4,)"
-						>
-							<td v-for="day in week">
-								<day-cell 
-								  :day="day"
-								  @set-day="setDay"
-								  @hovered="hoverRange"
-								/> 
-							</td>
-						</tr>
-					</table>
+							</div>
+						</div>
+						<table class="calendar-date">
+							<tr
+								class="calendar-date__week"
+								v-for="week in days.slice(4,)"
+							>
+								<td v-for="day in week">
+									<day-cell 
+									  :day="day"
+									  @set-day="setDay"
+									  @hovered="hoverRange"
+									/> 
+								</td>
+							</tr>
+						</table>
+					</div>
 				</div>
 			</div>
 			<div 
@@ -155,25 +164,6 @@ export default {
 					|| this.currentDate.end && day.value.getTime() === this.currentDate.end.getTime()
 				})
 			})
-	},
-	methods: {
-		chooseOption(option) {
-			if (this.selectedOption !== option) {
-				this.selectedOption = option;
-				if (option === 'range') this.hovering = true;
-				this.handleDays((day) => { 
-					day.isActive = false;
-					day.isHovered = false; 
-				});
-				this.currentDate = {
-					start: this.value.start,
-					end: null 
-				}
-
-				this.$emit('input', this.currentDate);
-				this.monthDays();
-			}
-		}
 	},
 	methods: {
  		handleDays(func = null) {
@@ -342,6 +332,23 @@ export default {
 				this.setRange(val);
 
 			this.$emit('clear');
+		},
+		chooseOption(option) {
+			if (this.selectedOption !== option) {
+				this.selectedOption = option;
+				if (option === 'range') this.hovering = true;
+				this.handleDays((day) => { 
+					day.isActive = false;
+					day.isHovered = false; 
+				});
+				this.currentDate = {
+					start: this.value.start,
+					end: null 
+				}
+
+				this.$emit('input', this.currentDate);
+				this.monthDays();
+			}
 		}
 	},
 	computed: {
@@ -362,7 +369,6 @@ $buttonsColor: #ff8584;
 $shadow: 0px 0px 3px 2px #e3e4e9;
 
 .calendar {
-  padding: 10px 15px;
 	background-color: $calendarBack;
 	&-wrapper {
 		width: max-content;
@@ -378,15 +384,21 @@ $shadow: 0px 0px 3px 2px #e3e4e9;
 		color: $buttonsColor;
 		& > * {
 			border: 1px solid $buttonsColor;
-			padding: 5px; 
-			cursor: pointer;
+	    padding: 5px;
+	    cursor: pointer;
+	    font-size: 14px;
+	    line-height: 14px;
+	    padding: 11px 0;
+	    border-radius: 2px;
+	    min-width: 107px;
+	    text-align: center;
 			&:first-child {
-				border-top-left-radius: 5px;
-				border-bottom-left-radius: 5px;
+				border-top-left-radius: 2px;
+				border-bottom-left-radius: 2px;
 			}
 			&:last-child {
-				border-top-right-radius: 5px;
-				border-bottom-right-radius: 5px;
+				border-top-right-radius: 2px;
+				border-bottom-right-radius: 2px;
 
 			}
 			&.active {
@@ -395,69 +407,84 @@ $shadow: 0px 0px 3px 2px #e3e4e9;
 			}
 		}
 	}
-	&__main {
-		& > * { 
-			display: inline-block;
-	    vertical-align: top; 
+	&-main {
+		& .calendar__month {
+			font-size: 16px;
+			color: $month;
+			line-height: 25px;
+			&.doubled-left {
+		    margin-left: -80px;
+			}
+
+			&.doubled-right {
+		    margin-right: -80px;
+			}
 		}
+
+		&__calendars {
+			margin-top: 20px;
+			display: flex;
+		}
+
+		&__top {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+		}
+	}
+	&__arrow {
+	// background-color: $arrow;
+	padding: 14px;
+	position: relative;
+	cursor: pointer;
+	&:hover {
+		box-shadow: $shadow;
+		transition: box-shadow .3s;
+	}
+	&::after,
+	&::before {
+		content: '';
+		display: block;
+		background-color: $month;
+		height: 9px;
+		width: 2px;
+		position: absolute;
+		top: 50%; left: 50%;
+	}
+	&::before {
+		transform: translate(-50%, -50%) rotate(45deg);
+	}
+	&::after {
+		transform: translate(-50%, -50%) rotate(-45deg);
+	}
+	&.left {
+		&::before {
+			top: 40%;
+    	left: calc(50% - 2px);
+		}
+		&::after {
+			top: 60%;
+    	left: calc(50% - 2px);
+		}
+	}
+	&.right {
+		transform: rotate(180deg);
+		&::after {
+			top: 60%;
+		}
+		&::before {
+			top: 40%;
+		}
+	}
+}
+	&-right {
+		margin-left: 19px;
 	}
 	&-top {
 		&__nav {
 			display: flex;
 			align-items: center;
 			justify-content: space-between;
-		}
-		&__arrow {
-			// background-color: $arrow;
-			padding: 14px;
-			position: relative;
-			cursor: pointer;
-			&:hover {
-				box-shadow: $shadow;
-				transition: box-shadow .3s;
-			}
-			&::after,
-			&::before {
-				content: '';
-				display: block;
-				background-color: $month;
-				height: 9px;
-				width: 2px;
-				position: absolute;
-				top: 50%; left: 50%;
-			}
-			&::before {
-				transform: translate(-50%, -50%) rotate(45deg);
-			}
-			&::after {
-				transform: translate(-50%, -50%) rotate(-45deg);
-			}
-			&.left {
-				margin-left: 10px;
-				&::before {
-					top: 40%;
-		    	left: calc(50% - 2px);
-				}
-				&::after {
-					top: 60%;
-		    	left: calc(50% - 2px);
-				}
-			}
-			&.right {
-				margin-right: 10px;
-				transform: rotate(180deg);
-				&::after {
-					top: 60%;
-				}
-				&::before {
-					top: 40%;
-				}
-			}
-		}
-		&__month {
-			font-size: 16px;
-			color: $month;
-			line-height: 25px;
 		}
 	}
 	&-bottom {
@@ -471,8 +498,11 @@ $shadow: 0px 0px 3px 2px #e3e4e9;
 		}
 
 		&__day-names {
+			display: flex;
+			justify-content: space-around;
 			font-size: 12px;
 			font-weight: 500;
+			margin-bottom: 20px;
 		}
 	}
 	
