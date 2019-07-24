@@ -1,12 +1,27 @@
 <template>
 		<div class="calendar-wrapper">
 			<div class="calendar__top calendar-top">
+				<div 
+					class="calendar-buttons"
+					v-if="topButtons"
+				>
+					<div 
+							class="calendar-buttons__one"
+							@click="chooseOption('one')"
+							:class="{active: selectedOption === 'one'}"
+						>One
+					</div>
+					<div 
+							class="calendar-buttons__range"
+							@click="chooseOption('range')"
+							:class="{active: selectedOption === 'range'}"
+						>Range</div>
+					</div>
 				<div class="calendar-top__nav">
 					<div 
 						class="calendar-top__arrow left"
 						@click="prevMonth"
 					></div>
-					<div class="calendar-top__month">{{ localMonth }}, {{ localYear }}</div>
 					<div 
 						class="calendar-top__arrow right"
 						@click="nextMonth"
@@ -14,7 +29,8 @@
 				</div>
 			</div>
 			<div class="calendar__main">
-				<div class="calendar">
+				<div class="calendar calendar-left">
+					<div class="calendar-top__month">{{ localMonth }}, {{ localYear }}</div>
 					<table class="calendar-date">
 						<tr class="calendar-date__day-names">
 							<td v-for="name in dayNames">
@@ -23,7 +39,32 @@
 						</tr>
 						<tr
 							class="calendar-date__week"
-							v-for="week in days"
+							v-for="week in days.slice(0, 5)"
+						>
+							<td v-for="day in week">
+								<day-cell 
+								  :day="day"
+								  @set-day="setDay"
+								  @hovered="hoverRange"
+								/> 
+							</td>
+						</tr>
+					</table>
+				</div>
+				<div 
+					class="calendar calendar-right"
+					v-if="isDouble"
+				>
+					<div class="calendar-top__month">{{ localMonth }}, {{ localYear }}</div>
+					<table class="calendar-date">
+						<tr class="calendar-date__day-names">
+							<td v-for="name in dayNames">
+								{{ name }}
+							</td>
+						</tr>
+						<tr
+							class="calendar-date__week"
+							v-for="week in days.slice(4,)"
 						>
 							<td v-for="day in week">
 								<day-cell 
@@ -78,6 +119,7 @@ export default {
 		disableAfter: { type: Date, default: () => null},
 		locale: { type: String, default: 'en'},
 		topButtons: { type: Boolean, default: false},
+		isDouble: { type: Boolean, default: false},
 		value: { type: [Object], default: null}
 
 	},
@@ -112,8 +154,6 @@ export default {
 					day.isActive = day.value.getTime() === this.currentDate.start.getTime()
 					|| this.currentDate.end && day.value.getTime() === this.currentDate.end.getTime()
 				})
-<<<<<<< HEAD
-
 			})
 	},
 	methods: {
@@ -230,7 +270,8 @@ export default {
 			let before = this.disableBefore;
 			let after  = this.disableAfter;
 
-			return before && before.getTime() > date.getTime()
+			return date.getMonth() !== this.localDate.getMonth() 
+			|| before && before.getTime() > date.getTime()
 			|| after
 			&& after.getTime() < date.getTime()
 		},
@@ -306,8 +347,8 @@ export default {
 	computed: {
 		dayNames() {
 			if (this.locale === 'en')
-				return  ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-			return ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+				return  ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+			return ['M','T', 'W', 'T', 'F', 'S', 'S'];
 		}
 	}
 }
@@ -315,9 +356,9 @@ export default {
 <style lang="scss">
 
 $calendarBack: #fff;
-$month: #202020;
+$month: #2c2c2c;
 $arrow: #7bb6db;
-$buttonsColor: $arrow;
+$buttonsColor: #ff8584;
 $shadow: 0px 0px 3px 2px #e3e4e9;
 
 .calendar {
@@ -334,6 +375,7 @@ $shadow: 0px 0px 3px 2px #e3e4e9;
 		display: flex;
 		align-items: center;
 		justify-content: center;
+		color: $buttonsColor;
 		& > * {
 			border: 1px solid $buttonsColor;
 			padding: 5px; 
@@ -412,7 +454,11 @@ $shadow: 0px 0px 3px 2px #e3e4e9;
 				}
 			}
 		}
-		&__month {}
+		&__month {
+			font-size: 16px;
+			color: $month;
+			line-height: 25px;
+		}
 	}
 	&-bottom {
 		&__daycell {}
@@ -420,9 +466,13 @@ $shadow: 0px 0px 3px 2px #e3e4e9;
 	&-date {
 		border-collapse: collapse;
 		& td { 
-			padding: 10px;
 			vertical-align: middle;
 			text-align: center;
+		}
+
+		&__day-names {
+			font-size: 12px;
+			font-weight: 500;
 		}
 	}
 	

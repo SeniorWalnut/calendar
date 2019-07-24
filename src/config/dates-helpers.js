@@ -43,9 +43,6 @@ const parseDate = (str, format) => {
 	return null;
 }
 
-const isValidDate = (date) => {
-  return date && Object.prototype.toString.call(date) === "[object Date]" && !isNaN(date);
-}
 
 
 const formatDate = (date, format) => {
@@ -56,7 +53,6 @@ export {
 	startOfWeek,
 	endOfWeek,
 	lastDayOfMonth,
-	isValidDate,
 	startOfMonth,
 	isBetween,
 	parseDate,

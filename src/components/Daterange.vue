@@ -27,10 +27,10 @@
 	<div class="daterange__calendar">
 		<calendar
 			v-if="openCalendar"
-			:top-buttons="true"
+			:top-buttons="topButtons"
 			v-model="currentDate"
 			@input="$emit('input', handleDate($event))"
-			:is-double="false"
+			:is-double="isDouble"
 			:disable-after="disableAfter ? handleDateString(disableAfter) : null"
 			:disable-before="disableBefore ? handleDateString(disableBefore) : null"
 			:locale="locale"

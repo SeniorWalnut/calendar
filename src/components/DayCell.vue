@@ -38,11 +38,13 @@ export default {
 </script>
 
 <style lang="scss">
-$active: #A64636;
+$active: #ff8584;
 $hovered: #E5AFAB;
 $disabled: #e3e4e9;
 	.day-cell {
 		cursor: pointer;
+		font-size: 12px;
+		padding: 8px 7px;
 		&.active {
 			background-color: $active;
 			color: white;
