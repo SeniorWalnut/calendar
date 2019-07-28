@@ -32,7 +32,7 @@
 						v-if="isDouble" 
 						class="calendar__month"
 						:class="{'doubled-right': isDouble}"
-					>{{localMonth}}, {{ localYear }}</div>
+					>{{ nextLocalMonth }}, {{ nextMonthYear }}</div>
 					<div 
 					class="calendar__arrow right"
 					@click="nextMonth"
@@ -72,7 +72,7 @@
 						<table class="calendar-date">
 							<tr
 								class="calendar-date__week"
-								v-for="week in days.slice(4,)"
+								v-for="week in days.slice(5,)"
 							>
 								<td v-for="day in week">
 									<day-cell 
@@ -190,7 +190,7 @@ export default {
 				{ locale: this.localeFormat})
 			);
 			this.monthDays();
-			this.getYear();
+			this.getYear(this.localDate);
 		},
 		nextMonth() {
 			let month = this.localDate.getMonth();
@@ -212,26 +212,39 @@ export default {
 				{ locale: this.localeFormat})
 			);
 			this.monthDays();
-			this.getYear();
+			this.getYear(this.localDate);
 		},
 		monthDays() {
 			this.days = [];
 			let weekStart = this.locale !== 'en';
 			let firstDay = startOfMonth(this.localDate);
-			let prevLastDay = new Date(dayjs(firstDay).subtract(1, 'day'));
-			let res = [
+			let resCurMonth = this.mapDates([
 			...getDates(
 				startOfWeek(
-					(prevLastDay.getDay() 
-					? prevLastDay 
-					: firstDay 
-				), 
-				weekStart),
+					firstDay, weekStart),
 				endOfWeek(lastDayOfMonth(
-					!this.isDouble ? firstDay : new Date(dayjs(firstDay).add(1, 'month'))
- 				), weekStart)
-			)].map(item => {
+					firstDay , weekStart))
+			)], firstDay);
 
+			if (this.isDouble) {
+				let firstDayNext = startOfMonth(new Date(dayjs(firstDay).add(1, 'month')));
+				let resNextMonth = this.mapDates([
+					...getDates(
+						startOfWeek(
+							firstDayNext, weekStart),
+						endOfWeek(lastDayOfMonth(
+							firstDayNext, weekStart))
+				)], firstDayNext);
+
+				resCurMonth = resCurMonth.concat(resNextMonth);
+			}
+
+			for (var i = 0; i < resCurMonth.length - 7; i+= 7)
+				this.days.push(resCurMonth.slice(i, i + 7))
+			this.days.push(resCurMonth.slice(i,))
+		},
+		mapDates(dates, fDay) {
+			return dates.map(item => {
 				let {start, end} = this.currentDate;
 
 				let checkActive = (
@@ -244,29 +257,24 @@ export default {
 				);
 
 				let checkDisabled = this.checkDateDisabled(item);
-
+				console.log(item, item.getMonth(), fDay.getMonth())
 				return {
 					isHovered: checkHover,
 					isActive: checkActive,
-					isDisabled: checkDisabled,
+					isDisabled: checkDisabled || fDay.getMonth() !== item.getMonth(),
 					value: item
 				};
 			})
-			for (var i = 0; i < res.length - 7; i+= 7)
-				this.days.push(res.slice(i, i + 7))
-			this.days.push(res.slice(i,))
 		},
 		checkDateDisabled(date) {
 			let before = this.disableBefore;
 			let after  = this.disableAfter;
 
-			return date.getMonth() !== this.localDate.getMonth() 
-			|| before && before.getTime() > date.getTime()
-			|| after
-			&& after.getTime() < date.getTime()
+			return before && before.getTime() > date.getTime()
+				|| after  && after.getTime() < date.getTime()
 		},
-		getYear() {
-			this.localYear = this.localDate.getFullYear();
+		getYear(date) {
+			return date.getFullYear();
 		},
 		setOne(date) {
 			this.handleDays((day) => {
@@ -356,6 +364,15 @@ export default {
 			if (this.locale === 'en')
 				return  ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 			return ['M','T', 'W', 'T', 'F', 'S', 'S'];
+		},
+		nextDate() {
+			return new Date(new Date().setMonth(this.localDate.getMonth() + 1));
+		},
+		nextLocalMonth() {
+			return formatDate(this.nextDate, 'MMM');
+		},
+		nextMonthYear() {
+			return formatDate(this.nextDate, 'YYYY');
 		}
 	}
 }
