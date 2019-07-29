@@ -17,63 +17,73 @@
 							:class="{active: selectedOption === 'range'}"
 						>Range</div>
 					</div>
-				<div class="calendar-top__nav">
+			</div>
+			<div class="calendar-main">
+				<div class="calendar-main__top">
 					<div 
-						class="calendar-top__arrow left"
+						class="calendar__arrow left"
 						@click="prevMonth"
 					></div>
-					<div class="calendar-top__month">{{ localMonth }}, {{ localYear }}</div>
 					<div 
-						class="calendar-top__arrow right"
-						@click="nextMonth"
-					></div>
+						class="calendar__month"
+						:class="{'doubled-left': isDouble}"
+					>{{ localMonth }}, {{ localYear }}</div>
+					<div 
+						v-if="isDouble" 
+						class="calendar__month"
+						:class="{'doubled-right': isDouble}"
+					>{{ nextLocalMonth }}, {{ nextMonthYear }}</div>
+					<div 
+					class="calendar__arrow right"
+					@click="nextMonth"
+				></div>
 				</div>
-			</div>
-			<div class="calendar__main">
-				<div class="calendar calendar-left">
-					<table class="calendar-date">
-						<tr class="calendar-date__day-names">
-							<td v-for="name in dayNames">
+				<div class="calendar-main__calendars">
+					<div class="calendar calendar-left">
+						<div class="calendar-date__day-names">
+							<div v-for="name in dayNames">
 								{{ name }}
-							</td>
-						</tr>
-						<tr
-							class="calendar-date__week"
-							v-for="week in days.slice(0, 5)"
-						>
-							<td v-for="day in week">
-								<day-cell 
-								  :day="day"
-								  @set-day="setDay"
-								  @hovered="hoverRange"
-								/> 
-							</td>
-						</tr>
-					</table>
-				</div>
-				<div 
-					class="calendar calendar-right"
-					v-if="isDouble"
-				>
-					<table class="calendar-date">
-						<tr class="calendar-date__day-names">
-							<td v-for="name in dayNames">
+							</div>
+						</div>
+						<table class="calendar-date">
+							<tr
+								class="calendar-date__week"
+								v-for="week in days.slice(0, weekCount)"
+							>
+								<td v-for="day in week">
+									<day-cell 
+									  :day="day"
+									  @set-day="setDay"
+									  @hovered="hoverRange"
+									/> 
+								</td>
+							</tr>
+						</table>
+					</div>
+					<div 
+						class="calendar calendar-right"
+						v-if="isDouble"
+					>
+						<div class="calendar-date__day-names">
+							<div v-for="name in dayNames">
 								{{ name }}
-							</td>
-						</tr>
-						<tr
-							class="calendar-date__week"
-							v-for="week in days.slice(4,)"
-						>
-							<td v-for="day in week">
-								<day-cell 
-								  :day="day"
-								  @set-day="setDay"
-								  @hovered="hoverRange"
-								/> 
-							</td>
-						</tr>
-					</table>
+							</div>
+						</div>
+						<table class="calendar-date">
+							<tr
+								class="calendar-date__week"
+								v-for="week in days.slice(weekCount,)"
+							>
+								<td v-for="day in week">
+									<day-cell 
+									  :day="day"
+									  @set-day="setDay"
+									  @hovered="hoverRange"
+									/> 
+								</td>
+							</tr>
+						</table>
+					</div>
 				</div>
 			</div>
 			<div 
@@ -94,7 +104,8 @@ import {
 	lastDayOfMonth,
 	startOfMonth,
 	isBetween,
-	formatDate
+	formatDate,
+	isValidDate
 } from '../config/dates-helpers.js';
 
 export default {
@@ -107,26 +118,34 @@ export default {
 			localeFormat: null,
 			
 			days: [],
-			currentDate: {
-				start: this.value ? this.value : new Date(new Date().setHours(0, 0, 0, 0)),
-				end: null
-			},
-			
+			currentDate: null,
 			selectedOption: 'one',
-			hovering: true
+			hovering: true,
+			nextLocalMonth: null,
+			nextMonthYear: null,
+			weekCount: 0
 		}
 	},
 	props: {
 		disableBefore: { type: Date, default: () => null },
 		disableAfter: { type: Date, default: () => null},
-		isDouble: { type: Boolean, default: false},
 		locale: { type: String, default: 'en'},
 		topButtons: { type: Boolean, default: false},
-		value: { type: [Object, Date, String], default: () => null}
+		isDouble: { type: Boolean, default: false},
+		value: { type: [Object], default: null}
+
 	},
 	created() {
-		this.localDate = this.value;
-		this.localYear = this.value.getFullYear();
+		this.currentDate = this.value;
+		
+		if (!isValidDate(this.value)) {
+			this.localDate = this.currentDate.start;
+		} else this.localDate = this.currentDate;
+		this.localMonth = formatDate(this.localDate, 'MMM');
+		if (this.value.end)
+			this.selectedOption = "range";
+
+		this.localYear = this.localDate.getFullYear()
 
 		let after = this.disableAfter;
 		let before = this.disableBefore;
@@ -136,37 +155,23 @@ export default {
 		else if (after && after.getTime() < this.localDate.getTime())
 			this.currentDate.start = after;
 
+		this.nextLocalMonth = formatDate(new Date(new Date().setMonth(this.localDate.getMonth() + 1)), 'MMM');
+		this.nextMonthYear = formatDate(this.localDate, 'YYYY');
+
 		import('dayjs/locale/' + this.locale)
 			.then(data => {
 				dayjs.locale(this.locale);
 			})
 			.then(() => {
-				this.localMonth = formatDate(this.value, 'MMM');
-				
 				this.monthDays();
 				this.handleDays((day) => {
 					day.value.setHours(0, 0, 0, 0);
 					day.isActive = day.value.getTime() === this.currentDate.start.getTime()
+					|| this.currentDate.end && day.value.getTime() === this.currentDate.end.getTime()
 				})
-
-				this.$emit('input', this.currentDate.start);
 			})
 	},
 	methods: {
-		chooseOption(option) {
-			if (this.selectedOption !== option) {
-				this.selectedOption = option;
-				if (option === 'range') this.hovering = true;
-				this.handleDays((day) => { 
-					day.isActive = false;
-					day.isHovered = false; 
-				});
-				this.currentDate = {
-					start: null,
-					end: null 
-				}
-			}
-		},
  		handleDays(func = null) {
 			this.days.forEach(week => {
 				week.forEach(day => func(day))
@@ -180,7 +185,12 @@ export default {
 				year -= 1;
 			}
 
-			let date = new Date();
+			if (this.isDouble) {
+				this.nextLocalMonth = this.localMonth;
+				this.nextMonthYear = this.localYear;
+			}
+			
+			let date = new Date(year, month, 1, 0, 0, 0, 0);
 			date.setMonth(month - 1);
 			date.setFullYear(year);
 
@@ -190,8 +200,11 @@ export default {
 				'MMM', 
 				{ locale: this.localeFormat})
 			);
+			this.localYear = this.getYear(date);
+
+
 			this.monthDays();
-			this.getYear();
+			this.getYear(this.localDate);
 		},
 		nextMonth() {
 			let month = this.localDate.getMonth();
@@ -201,8 +214,7 @@ export default {
 				year += 1;
 			}
 
-			let date = new Date();
-
+			let date = new Date(year, month, 1, 0, 0, 0, 0);
 			date.setMonth(month + 1); 
 			date.setFullYear(year);
 
@@ -212,60 +224,83 @@ export default {
 				'MMM', 
 				{ locale: this.localeFormat})
 			);
+			this.localYear = this.getYear(date);
+
+			if (this.isDouble) {
+				this.nextLocalMonth = formatDate(new Date(new Date().setMonth(date.getMonth() + 1)), 'MMM');
+				this.nextMonthYear = formatDate(
+					date.getMonth() === 11 ? 
+					new Date(new Date().setFullYear(date.getFullYear() + 1)) :
+					date
+				, 'YYYY');
+			}
+
 			this.monthDays();
-			this.getYear();
+			this.getYear(this.localDate);
 		},
 		monthDays() {
 			this.days = [];
 			let weekStart = this.locale !== 'en';
 			let firstDay = startOfMonth(this.localDate);
-			let prevLastDay = new Date(dayjs(firstDay).subtract(1, 'day'));
-			let res = [
+			let resCurMonth = this.mapDates([
 			...getDates(
 				startOfWeek(
-					(prevLastDay.getDay() 
-					? prevLastDay 
-					: firstDay 
-				), 
-				weekStart),
+					firstDay, weekStart),
 				endOfWeek(lastDayOfMonth(
-					!this.isDouble ? firstDay : new Date(dayjs(firstDay).add(1, 'month'))
- 				), weekStart)
-			)].map(item => {
+					firstDay , weekStart))
+			)], firstDay);
 
+			this.weekCount = resCurMonth.length / 7;
+
+			if (this.isDouble) {
+				let firstDayNext = startOfMonth(new Date(dayjs(firstDay).add(1, 'month')));
+				let resNextMonth = this.mapDates([
+					...getDates(
+						startOfWeek(
+							firstDayNext, weekStart),
+						endOfWeek(lastDayOfMonth(
+							firstDayNext, weekStart))
+				)], firstDayNext);
+
+				resCurMonth = resCurMonth.concat(resNextMonth);
+			}
+
+
+			for (var i = 0; i < resCurMonth.length - 7; i+= 7)
+				this.days.push(resCurMonth.slice(i, i + 7))
+			this.days.push(resCurMonth.slice(i,))
+		},
+		mapDates(dates, fDay) {
+			return dates.map(item => {
 				let {start, end} = this.currentDate;
 
 				let checkActive = (
 					start && item.getTime() === start.getTime()
-					|| end && item.getTime() === end.getTime());
+					|| end && item.getTime() === end.getTime()
+				);
 
 				let checkHover = (
 					start && end && isBetween(start, end)(item)
 				);
 
 				let checkDisabled = this.checkDateDisabled(item);
-
 				return {
 					isHovered: checkHover,
 					isActive: checkActive,
-					isDisabled: checkDisabled,
+					isDisabled: checkDisabled || fDay.getMonth() !== item.getMonth(),
 					value: item
 				};
 			})
-			for (var i = 0; i < res.length - 7; i+= 7)
-				this.days.push(res.slice(i, i + 7))
-			this.days.push(res.slice(i,))
 		},
 		checkDateDisabled(date) {
 			let before = this.disableBefore;
 			let after  = this.disableAfter;
 
 			return before && before.getTime() > date.getTime()
-			|| after
-			&& after.getTime() < date.getTime()
+				|| after  && after.getTime() < date.getTime()
 		},
-		getYear() {
-			this.localYear = this.localDate.getFullYear();
+		getYear(date) {
+			return date.getFullYear();
 		},
 		setOne(date) {
 			this.handleDays((day) => {
@@ -277,7 +312,7 @@ export default {
 				end: null
 			};
 
-			this.$emit('input', this.currentDate.start);
+			this.$emit('input', this.currentDate);
 		},
 		setRange(date) {
 			let { start, end } = this.currentDate;
@@ -331,13 +366,30 @@ export default {
 				this.setRange(val);
 
 			this.$emit('clear');
+		},
+		chooseOption(option) {
+			if (this.selectedOption !== option) {
+				this.selectedOption = option;
+				if (option === 'range') this.hovering = true;
+				this.handleDays((day) => { 
+					day.isActive = false;
+					day.isHovered = false; 
+				});
+				this.currentDate = {
+					start: this.value.start,
+					end: null 
+				}
+
+				this.$emit('input', this.currentDate);
+				this.monthDays();
+			}
 		}
 	},
 	computed: {
 		dayNames() {
 			if (this.locale === 'en')
-				return  ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-			return ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+				return  ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+			return ['M','T', 'W', 'T', 'F', 'S', 'S'];
 		}
 	}
 }
@@ -345,13 +397,12 @@ export default {
 <style lang="scss">
 
 $calendarBack: #fff;
-$month: #202020;
+$month: #2c2c2c;
 $arrow: #7bb6db;
-$buttonsColor: $arrow;
+$buttonsColor: #ff8584;
 $shadow: 0px 0px 3px 2px #e3e4e9;
 
 .calendar {
-  padding: 10px 15px;
 	background-color: $calendarBack;
 	&-wrapper {
 		width: max-content;
@@ -364,17 +415,24 @@ $shadow: 0px 0px 3px 2px #e3e4e9;
 		display: flex;
 		align-items: center;
 		justify-content: center;
+		color: $buttonsColor;
 		& > * {
 			border: 1px solid $buttonsColor;
-			padding: 5px; 
-			cursor: pointer;
+	    padding: 5px;
+	    cursor: pointer;
+	    font-size: 14px;
+	    line-height: 14px;
+	    padding: 11px 0;
+	    border-radius: 2px;
+	    min-width: 107px;
+	    text-align: center;
 			&:first-child {
-				border-top-left-radius: 5px;
-				border-bottom-left-radius: 5px;
+				border-top-left-radius: 2px;
+				border-bottom-left-radius: 2px;
 			}
 			&:last-child {
-				border-top-right-radius: 5px;
-				border-bottom-right-radius: 5px;
+				border-top-right-radius: 2px;
+				border-bottom-right-radius: 2px;
 
 			}
 			&.active {
@@ -383,11 +441,78 @@ $shadow: 0px 0px 3px 2px #e3e4e9;
 			}
 		}
 	}
-	&__main {
-		& > * { 
-			display: inline-block;
-	    vertical-align: top; 
+	&-main {
+		& .calendar__month {
+			font-size: 16px;
+			color: $month;
+			line-height: 25px;
+			&.doubled-left {
+		    margin-left: -80px;
+			}
+
+			&.doubled-right {
+		    margin-right: -80px;
+			}
 		}
+
+		&__calendars {
+			margin-top: 20px;
+			display: flex;
+		}
+
+		&__top {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+		}
+	}
+	&__arrow {
+	// background-color: $arrow;
+	padding: 14px;
+	position: relative;
+	cursor: pointer;
+	&:hover {
+		box-shadow: $shadow;
+		transition: box-shadow .3s;
+	}
+	&::after,
+	&::before {
+		content: '';
+		display: block;
+		background-color: $month;
+		height: 9px;
+		width: 2px;
+		position: absolute;
+		top: 50%; left: 50%;
+	}
+	&::before {
+		transform: translate(-50%, -50%) rotate(45deg);
+	}
+	&::after {
+		transform: translate(-50%, -50%) rotate(-45deg);
+	}
+	&.left {
+		&::before {
+			top: 40%;
+    	left: calc(50% - 2px);
+		}
+		&::after {
+			top: 60%;
+    	left: calc(50% - 2px);
+		}
+	}
+	&.right {
+		transform: rotate(180deg);
+		&::after {
+			top: 60%;
+		}
+		&::before {
+			top: 40%;
+		}
+	}
+}
+	&-right {
+		margin-left: 19px;
 	}
 	&-top {
 		&__nav {
@@ -395,54 +520,6 @@ $shadow: 0px 0px 3px 2px #e3e4e9;
 			align-items: center;
 			justify-content: space-between;
 		}
-		&__arrow {
-			// background-color: $arrow;
-			padding: 14px;
-			position: relative;
-			cursor: pointer;
-			&:hover {
-				box-shadow: $shadow;
-				transition: box-shadow .3s;
-			}
-			&::after,
-			&::before {
-				content: '';
-				display: block;
-				background-color: $month;
-				height: 9px;
-				width: 2px;
-				position: absolute;
-				top: 50%; left: 50%;
-			}
-			&::before {
-				transform: translate(-50%, -50%) rotate(45deg);
-			}
-			&::after {
-				transform: translate(-50%, -50%) rotate(-45deg);
-			}
-			&.left {
-				margin-left: 10px;
-				&::before {
-					top: 40%;
-		    	left: calc(50% - 2px);
-				}
-				&::after {
-					top: 60%;
-		    	left: calc(50% - 2px);
-				}
-			}
-			&.right {
-				margin-right: 10px;
-				transform: rotate(180deg);
-				&::after {
-					top: 60%;
-				}
-				&::before {
-					top: 40%;
-				}
-			}
-		}
-		&__month {}
 	}
 	&-bottom {
 		&__daycell {}
@@ -450,9 +527,16 @@ $shadow: 0px 0px 3px 2px #e3e4e9;
 	&-date {
 		border-collapse: collapse;
 		& td { 
-			padding: 10px;
 			vertical-align: middle;
 			text-align: center;
+		}
+
+		&__day-names {
+			display: flex;
+			justify-content: space-around;
+			font-size: 12px;
+			font-weight: 500;
+			margin-bottom: 20px;
 		}
 	}
 	
