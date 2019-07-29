@@ -48,7 +48,7 @@
 						<table class="calendar-date">
 							<tr
 								class="calendar-date__week"
-								v-for="week in days.slice(0, 5)"
+								v-for="week in days.slice(0, weekCount)"
 							>
 								<td v-for="day in week">
 									<day-cell 
@@ -72,7 +72,7 @@
 						<table class="calendar-date">
 							<tr
 								class="calendar-date__week"
-								v-for="week in days.slice(5,)"
+								v-for="week in days.slice(weekCount,)"
 							>
 								<td v-for="day in week">
 									<day-cell 
@@ -120,7 +120,10 @@ export default {
 			days: [],
 			currentDate: null,
 			selectedOption: 'one',
-			hovering: true
+			hovering: true,
+			nextLocalMonth: null,
+			nextMonthYear: null,
+			weekCount: 0
 		}
 	},
 	props: {
@@ -152,6 +155,9 @@ export default {
 		else if (after && after.getTime() < this.localDate.getTime())
 			this.currentDate.start = after;
 
+		this.nextLocalMonth = formatDate(new Date(new Date().setMonth(this.localDate.getMonth() + 1)), 'MMM');
+		this.nextMonthYear = formatDate(this.localDate, 'YYYY');
+
 		import('dayjs/locale/' + this.locale)
 			.then(data => {
 				dayjs.locale(this.locale);
@@ -179,7 +185,12 @@ export default {
 				year -= 1;
 			}
 
-			let date = new Date();
+			if (this.isDouble) {
+				this.nextLocalMonth = this.localMonth;
+				this.nextMonthYear = this.localYear;
+			}
+			
+			let date = new Date(year, month, 1, 0, 0, 0, 0);
 			date.setMonth(month - 1);
 			date.setFullYear(year);
 
@@ -189,6 +200,9 @@ export default {
 				'MMM', 
 				{ locale: this.localeFormat})
 			);
+			this.localYear = this.getYear(date);
+
+
 			this.monthDays();
 			this.getYear(this.localDate);
 		},
@@ -200,8 +214,7 @@ export default {
 				year += 1;
 			}
 
-			let date = new Date();
-
+			let date = new Date(year, month, 1, 0, 0, 0, 0);
 			date.setMonth(month + 1); 
 			date.setFullYear(year);
 
@@ -211,6 +224,17 @@ export default {
 				'MMM', 
 				{ locale: this.localeFormat})
 			);
+			this.localYear = this.getYear(date);
+
+			if (this.isDouble) {
+				this.nextLocalMonth = formatDate(new Date(new Date().setMonth(date.getMonth() + 1)), 'MMM');
+				this.nextMonthYear = formatDate(
+					date.getMonth() === 11 ? 
+					new Date(new Date().setFullYear(date.getFullYear() + 1)) :
+					date
+				, 'YYYY');
+			}
+
 			this.monthDays();
 			this.getYear(this.localDate);
 		},
@@ -226,6 +250,8 @@ export default {
 					firstDay , weekStart))
 			)], firstDay);
 
+			this.weekCount = resCurMonth.length / 7;
+
 			if (this.isDouble) {
 				let firstDayNext = startOfMonth(new Date(dayjs(firstDay).add(1, 'month')));
 				let resNextMonth = this.mapDates([
@@ -238,6 +264,7 @@ export default {
 
 				resCurMonth = resCurMonth.concat(resNextMonth);
 			}
+
 
 			for (var i = 0; i < resCurMonth.length - 7; i+= 7)
 				this.days.push(resCurMonth.slice(i, i + 7))
@@ -257,7 +284,6 @@ export default {
 				);
 
 				let checkDisabled = this.checkDateDisabled(item);
-				console.log(item, item.getMonth(), fDay.getMonth())
 				return {
 					isHovered: checkHover,
 					isActive: checkActive,
@@ -364,15 +390,6 @@ export default {
 			if (this.locale === 'en')
 				return  ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 			return ['M','T', 'W', 'T', 'F', 'S', 'S'];
-		},
-		nextDate() {
-			return new Date(new Date().setMonth(this.localDate.getMonth() + 1));
-		},
-		nextLocalMonth() {
-			return formatDate(this.nextDate, 'MMM');
-		},
-		nextMonthYear() {
-			return formatDate(this.nextDate, 'YYYY');
 		}
 	}
 }
