@@ -35,6 +35,7 @@
 			:disable-before="disableBefore ? handleDateString(disableBefore) : null"
 			:locale="locale"
 			@close="handleClose"
+			:option="option"
 		/>
 	</div>
 </div>
@@ -68,16 +69,16 @@ export default {
 		} 
 	},
 	props: {
-		title: { type: String, default: 'Daterange'},
+		title: { type: String, default: ''},
 		disableAfter: {type: [String, Date], default:  null},
 		disableBefore: {type: [String, Date], default: null},
-		range: { type: Object, default: null},
 		placeholder: { type: String, default: ''},
 		value: { type: [String, Date, Object], default: ''},
 		denominator: { type: String, default: '.'},
 		locale: { type: String, default: 'en'},
 		isDouble: { type: Boolean, default: false},
-		topButtons: { type: Boolean, default: false}
+		topButtons: { type: Boolean, default: false},
+		option: { type: String, default: 'one'}
 	},
 	created() {
 		this.currentDate = {
@@ -186,8 +187,10 @@ export default {
 $textColor: #2c2c2c;
 $placeholderColor: rgba(0, 0, 0, 0.87);
 $errorColor: red;
+$calendarBack: #fff;
 .daterange {
 	font-family: 'Roboto', sans-serif;
+	position: relative;
 	&__wrap {
 	  	display: block;
 	}
@@ -202,6 +205,9 @@ $errorColor: red;
 	&__calendar {
 		width: max-content;
 		display: flex;
+		position: absolute;
+		background-color: $calendarBack;
+		z-index: 1000;
 	}
 	&__input {
 		padding: 11px 0 13px 9px;

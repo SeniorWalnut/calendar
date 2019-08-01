@@ -119,7 +119,7 @@ export default {
 			
 			days: [],
 			currentDate: null,
-			selectedOption: 'one',
+			selectedOption: this.option,
 			hovering: true,
 			nextLocalMonth: null,
 			nextMonthYear: null,
@@ -132,7 +132,8 @@ export default {
 		locale: { type: String, default: 'en'},
 		topButtons: { type: Boolean, default: false},
 		isDouble: { type: Boolean, default: false},
-		value: { type: [Object], default: null}
+		value: { type: [Object], default: null},
+		option: { type: String, default: 'one'}
 
 	},
 	created() {
@@ -406,7 +407,7 @@ $shadow: 0px 0px 3px 2px #e3e4e9;
 	background-color: $calendarBack;
 	&-wrapper {
 		width: max-content;
-		padding: 20px 25px;
+		padding: 25px 30px;
     box-shadow: $shadow; 
     position: relative;
 	}
@@ -544,8 +545,8 @@ $shadow: 0px 0px 3px 2px #e3e4e9;
 
 .close-button {
 	position: absolute;
-  top: 15px;
-  right: 25px;
+  top: 5px;
+  right: 5px;
   padding: 10px;
   cursor: pointer;
   &::after,
