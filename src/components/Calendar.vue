@@ -160,7 +160,7 @@ export default {
 
 		import('dayjs/locale/' + this.locale)
 			.then(data => {
-				dayjs.locale(this.locale);
+				dayjs.locale(this.locale.toLowerCase());
 			})
 			.then(() => {
 				this.monthDays();

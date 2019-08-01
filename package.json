@@ -5,6 +5,10 @@
   "license": "MIT",
   "access": "public",
   "description": "Very useful datepicker written on Vue.js",
+  "scripts": {
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build"
+  },
   "dependencies": {
     "core-js": "^2.6.5",
     "date-fns": "^1.30.1",
