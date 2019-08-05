@@ -5,7 +5,7 @@
       placeholder="DD.MM.YYYY"
       :value="date"
       @input="date = $event"
-      locale="en"
+      locale="ru"
       :is-double="true"
       :top-buttons="true"
     />

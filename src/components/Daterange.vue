@@ -210,6 +210,7 @@ $errorColor: red;
 		margin-top: 4px;
 		font-weight: 500;
 		width: 100%;
+		outline: none;
 		&.error {
 			outline: $errorColor solid 1px;
 		}

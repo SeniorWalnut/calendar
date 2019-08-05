@@ -4,7 +4,7 @@ dayjs.extend(customParseFormat);
 
 
 const lastDayOfMonth = (date) => new Date(date.getFullYear(), date.getMonth() + 1, 0);
-const startOfMonth = (date, mondayFirst = false) => new Date(date.getFullYear(), date.getMonth(), 1 );
+const startOfMonth = (date) => new Date(date.getFullYear(), date.getMonth(), 1);
 
 const startOfWeek = (d, weekStart = 0) => {
   d = new Date(d);
