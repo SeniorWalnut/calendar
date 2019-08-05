@@ -115,7 +115,7 @@ export default {
 			localDate: null,
 			localMonth: null,
 			localYear: null,
-			localeFormat: null,
+			localeFormat: this.locale.toLowerCase(),
 			
 			days: [],
 			currentDate: null,
@@ -163,11 +163,12 @@ export default {
 		this.nextLocalMonth = formatDate(
 				new Date(new Date().setMonth(this.localDate.getMonth() + 1)), 
 				'MMM',
-				{ locale: this.localeFormat }
+				{ locale: this.locale }
 		);
 		this.nextMonthYear = formatDate(this.localDate, 'YYYY');
 
-		import('dayjs/locale/' + this.locale)
+		let loc = 
+		import('dayjs/locale/' + this.locale.toLowerCase())
 			.then(data => {
 				dayjs.locale(this.locale.toLowerCase());
 			})
@@ -175,14 +176,14 @@ export default {
 				this.localMonth = formatDate(
 				this.localDate, 
 					'MMM',
-					{ locale: this.localeFormat }
+					{ locale: this.locale }
 				);
 
 				if (this.isDouble) {
 					this.nextLocalMonth = formatDate(
 						new Date(new Date().setMonth(this.localDate.getMonth() + 1)), 
 						'MMM',
-						{ locale: this.localeFormat }
+						{ locale: this.locale }
 					);
 				}
 				this.monthDays();
@@ -220,7 +221,7 @@ export default {
 			this.localMonth = (formatDate(
 				date, 
 				'MMM', 
-				{ locale: this.localeFormat})
+				{ locale: this.locale})
 			);
 			this.localYear = this.getYear(date);
 
@@ -244,7 +245,7 @@ export default {
 			this.localMonth = (formatDate(
 				this.localDate,
 				'MMM', 
-				{ locale: this.localeFormat})
+				{ locale: this.locale})
 			);
 			this.localYear = this.getYear(date);
 
@@ -263,7 +264,6 @@ export default {
 		monthDays() {
 			this.days = [];
 			let weekStart = this.locale !== 'en';
-			console.log(weekStart)
 			let firstDay = startOfMonth(this.localDate);
 			let resCurMonth = this.mapDates([
 			...getDates(
@@ -277,7 +277,6 @@ export default {
 					)
 			)], firstDay);
 
-			console.log(resCurMonth);
 			this.weekCount = resCurMonth.length / 7;
 
 			if (this.isDouble) {
@@ -287,10 +286,9 @@ export default {
 						startOfWeek(
 							firstDayNext, weekStart),
 						endOfWeek(lastDayOfMonth(
-							firstDayNext, weekStart))
+							firstDayNext), weekStart)
 				)], firstDayNext);
 
-				console.log(resNextMonth)
 				resCurMonth = resCurMonth.concat(resNextMonth);
 			}
 
