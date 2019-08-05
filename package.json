@@ -1,7 +1,9 @@
 {
-  "name": "vue-daterange",
+  "name": "daterange-vue",
   "version": "0.1.1",
-  "author": "SeniorWalnut",
+  "author": "senior_walnut",
+  "license": "MIT",
+  "access": "public",
   "description": "Very useful datepicker written on Vue.js",
   "scripts": {
     "serve": "vue-cli-service serve",
@@ -15,7 +17,7 @@
     "sass-loader": "^7.1.0",
     "vue": "^2.6.10"
   },
-  "devDependencies": {
+  "devDependencies ": {
     "@vue/cli-plugin-babel": "^3.9.0",
     "@vue/cli-service": "^3.9.0",
     "vue-template-compiler": "^2.6.10"
