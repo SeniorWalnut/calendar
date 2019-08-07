@@ -82,6 +82,11 @@ export default {
 		error: { type: Boolean, default: false},
 		required: { type: Boolean, default: false}
 	},
+	watch: {
+		error(val) {
+			this.$emit('checkValid', val);
+		}
+	},
 	created() {
 		this.currentDate = {
 			start: null,
@@ -94,7 +99,7 @@ export default {
 				this.currentDate.start = new Date(new Date().setHours(0, 0, 0, 0));
 				this.currentInputDate = '';
 			}	else
-				this.currentInputDate = this.value;
+				this.currentInputDate = formatDate(this.handleDateString(this.value), this.format);
 		} else {
 			this.currentDate.start = this.value;
 			this.currentInputDate = formatDate(this.currentDate.start, this.format)
@@ -103,7 +108,9 @@ export default {
 	methods: {
 		handleDateString(dis) {
 			if (dis.length)
-				return new Date(parseDate(dis, this.format))
+				return new Date(parseDate(dis, this.format));
+			else if (isValidDate(dis))
+				return dis;
 			else null;
 		},
 		handleDate(date) {
@@ -118,9 +125,26 @@ export default {
 			}
 		},
 		handleClose() {
-			if (this.value.length)
+			if (this.currentInputDate.length > 5) {
+				this.currentInputDate += new Date().getFullYear();
+				this.handleCurrentInputDate()
+			} else if (this.value.length) {
 				this.currentInputDate = '';
+			}
 			this.openCalendar = false;
+		},
+		handleCurrentInputDate() {
+			if (this.checkInputDate()) {
+				this.currentDate.start = this.handleDateString(this.currentInputDate);
+			} else {
+				let date = new Date(new Date().setHours(0, 0, 0, 0));
+				let dis = this.disableBefore;
+				this.currentInputDate = '';
+				this.currentDate.start = dis && new Date(dis.setHours(0, 0, 0, 0)).getTime() !== date.getTime()  
+					? date
+					: new Date(new Date().setDate(this.disableBefore.getDate() + 1));				
+			}
+			this.$emit('input', this.handleDate(this.currentDate));
 		},
 		handleValue(val) {
 			if (val.length === 2 || val.length === 5)
@@ -128,14 +152,7 @@ export default {
 			this.currentInputDate = val;
 
 			if (this.currentInputDate.length === this.format.length) {
-				if (this.checkInputDate()) {
-					this.currentDate.start = this.handleDateString(this.currentInputDate);
-				} else {
-					this.currentInputDate = '';
-					this.currentDate.start = new Date(new Date().setHours(0, 0, 0, 0));				
-
-				}
-				this.$emit('input', this.handleDate(this.currentDate));
+				this.handleCurrentInputDate();
 				this.openCalendar = false;
 			}
 		},
@@ -146,20 +163,22 @@ export default {
 			if (!check) e.preventDefault();
 		},
 		checkInputDate() {		
-			let d = new Date();
-			d.setFullYear(new Date().getFullYear());
-
 			let disableB = this.disableBefore ? parseDate(this.disableBefore, this.format) : new Date(new Date().setFullYear(new Date().getFullYear() - 100));;
-			let disableA = this.disableAfter  ? parseDate(this.disableAfter, this.format) : d;
+			let disableA = this.disableAfter  ? parseDate(this.disableAfter, this.format) : null;
 
-			let between = isBetween(
-				disableB,
-				disableA
-			)
-			
 			let parsed = parseDate(this.currentInputDate, this.format);
-			return between(parsed) 
-			&& isValidDate(parsed);
+			let between;
+
+			if (disableA) {
+				between = isBetween(
+					disableB,
+					disableA
+				)(parsed)
+			} else {
+				between = parsed.getTime() > disableB.getTime();
+			}
+			
+			return between && isValidDate(parsed);
 		}
 	},
 	computed: {

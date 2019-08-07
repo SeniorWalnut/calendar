@@ -137,7 +137,15 @@ export default {
 
 	},
 	created() {
+		let after = this.disableAfter;
+		let before = this.disableBefore;
+		
 		this.currentDate = this.value;
+
+		if (before && before.getTime() > this.currentDate.start.getTime())
+			this.currentDate.start = before;
+		else if (after && after.getTime() < this.currentDate.start.getTime())
+			this.currentDate.start = after;
 		
 		if (!isValidDate(this.value)) {
 			this.localDate = this.currentDate.start;
@@ -151,14 +159,6 @@ export default {
 			this.selectedOption = "range";
 
 		this.localYear = this.localDate.getFullYear()
-
-		let after = this.disableAfter;
-		let before = this.disableBefore;
-
-		if (before && before.getTime() > this.localDate.getTime())
-			this.currentDate.start = before;
-		else if (after && after.getTime() < this.localDate.getTime())
-			this.currentDate.start = after;
 
 		this.nextLocalMonth = formatDate(
 				new Date(new Date().setMonth(this.localDate.getMonth() + 1)), 

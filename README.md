@@ -22,3 +22,6 @@ Features:
 Upcoming:
 * Parsing the range-string
 
+Updates: 
+* Error handling through emits
+* Disable bug - fixed
