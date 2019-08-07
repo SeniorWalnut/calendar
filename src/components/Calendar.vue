@@ -144,7 +144,7 @@ export default {
 		} else this.localDate = this.currentDate;
 		this.localMonth = formatDate(
 			this.localDate, 
-			'MMM',
+			'MMMM',
 			{ locale: this.localeFormat }
 		);
 		if (this.value.end)
@@ -162,7 +162,7 @@ export default {
 
 		this.nextLocalMonth = formatDate(
 				new Date(new Date().setMonth(this.localDate.getMonth() + 1)), 
-				'MMM',
+				'MMMM',
 				{ locale: this.locale }
 		);
 		this.nextMonthYear = formatDate(this.localDate, 'YYYY');
@@ -175,14 +175,14 @@ export default {
 			.then(() => {
 				this.localMonth = formatDate(
 				this.localDate, 
-					'MMM',
+					'MMMM',
 					{ locale: this.locale }
 				);
 
 				if (this.isDouble) {
 					this.nextLocalMonth = formatDate(
 						new Date(new Date().setMonth(this.localDate.getMonth() + 1)), 
-						'MMM',
+						'MMMM',
 						{ locale: this.locale }
 					);
 				}
@@ -220,7 +220,7 @@ export default {
 			this.localDate = date;
 			this.localMonth = (formatDate(
 				date, 
-				'MMM', 
+				'MMMM', 
 				{ locale: this.locale})
 			);
 			this.localYear = this.getYear(date);
@@ -244,13 +244,13 @@ export default {
 			this.localDate = date;
 			this.localMonth = (formatDate(
 				this.localDate,
-				'MMM', 
+				'MMMM', 
 				{ locale: this.locale})
 			);
 			this.localYear = this.getYear(date);
 
 			if (this.isDouble) {
-				this.nextLocalMonth = formatDate(new Date(new Date().setMonth(date.getMonth() + 1)), 'MMM');
+				this.nextLocalMonth = formatDate(new Date(new Date().setMonth(date.getMonth() + 1)), 'MMMM');
 				this.nextMonthYear = formatDate(
 					date.getMonth() === 11 ? 
 					new Date(new Date().setFullYear(date.getFullYear() + 1)) :
