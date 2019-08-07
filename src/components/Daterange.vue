@@ -9,12 +9,13 @@
 		<h1 
 			class="daterange__title"
 			v-if="title"
+			:class="{required: required}"
 		>{{ title }}</h1>
 		<input 
 			id="daterange" 
 			type="text" 
 			class="daterange__input"
-			:class="{'daterange_error': isError}"
+			:class="{error: error}"
 			@input="handleValue($event.target.value)"
 			:placeholder="placeholder"
 			@keydown="keyMonitor"
@@ -62,7 +63,6 @@ export default {
 			currentInputDate: '',
 			inputDate: '',
 			openCalendar: false,
-			isError: false,
 			currentDate: '',
 			format: 'DD.MM.YYYY',
 			selectedOption: 'one'
@@ -78,7 +78,9 @@ export default {
 		locale: { type: String, default: 'en'},
 		isDouble: { type: Boolean, default: false},
 		topButtons: { type: Boolean, default: false},
-		option: { type: String, default: 'one'}
+		option: { type: String, default: 'one'},
+		error: { type: Boolean, default: false},
+		required: { type: Boolean, default: false}
 	},
 	created() {
 		this.currentDate = {
@@ -186,7 +188,7 @@ export default {
 <style lang="scss">
 $textColor: #2c2c2c;
 $placeholderColor: rgba(0, 0, 0, 0.87);
-$errorColor: red;
+$errorColor: rgba(208, 2, 27, 0.65);
 $calendarBack: #fff;
 .daterange {
 	font-family: 'Roboto', sans-serif;
@@ -201,6 +203,15 @@ $calendarBack: #fff;
 		color: $textColor;
 		margin: 0;
 		padding-left: 9px;
+		&.required {
+			&::after {
+		    content: '*';
+	    	font-size: 12px;
+	    	color: #ff8584;
+	    	top: -2px;
+	    	position: relative;
+			}
+		}
 	}
 	&__calendar {
 		width: max-content;
