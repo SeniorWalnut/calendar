@@ -15,11 +15,11 @@
 			id="daterange" 
 			type="text" 
 			class="daterange__input"
-			:class="{error: error}"
+			:class="{error: error || isError}"
 			@input="handleValue($event.target.value)"
 			:placeholder="placeholder"
 			@keydown="keyMonitor"
-			:maxlength="10"
+			:maxlength="selectedOption === 'one' ? 10 : 23"
 			autocomplete="off"
 			@focus="openCalendar = true;"
 			:value="currentInputDate"
@@ -30,12 +30,13 @@
 			v-if="openCalendar"
 			:top-buttons="topButtons"
 			v-model="currentDate"
-			@input="$emit('input', handleDate($event))"
+			@input="$emit('input', handleDate($event)); isError = false"
 			:is-double="isDouble"
 			:disable-after="disableAfter ? handleDateString(disableAfter) : null"
 			:disable-before="disableBefore ? handleDateString(disableBefore) : null"
 			:locale="locale"
 			@close="handleClose"
+			@set-option="selectedOption = $event"
 			:option="option"
 		/>
 	</div>
@@ -51,8 +52,8 @@ import
 	isValidDate
 } from '../config/dates-helpers'; 
 import dayjs from 'dayjs';
-import customParseFormat from 'dayjs/plugin/customParseFormat';
-dayjs.extend(customParseFormat);
+// import customParseFormat from 'dayjs/plugin/customParseFormat';
+// dayjs.extend(customParseFormat);
 
 export default {
 	components: { Calendar },
@@ -65,7 +66,8 @@ export default {
 			openCalendar: false,
 			currentDate: '',
 			format: 'DD.MM.YYYY',
-			selectedOption: 'one'
+			selectedOption: this.option,
+			isError: false
 		} 
 	},
 	props: {
@@ -83,8 +85,13 @@ export default {
 		required: { type: Boolean, default: false}
 	},
 	watch: {
-		error(val) {
-			this.$emit('checkValid', val);
+		currentInputDate(val) {
+			if (!val.length) this.isError = false;
+		},
+		selectedOption(val) {
+			if (this.currentInputDate.length === 10
+				&& val === 'range')
+				this.currentInputDate += ' - ';
 		}
 	},
 	created() {
@@ -110,10 +117,11 @@ export default {
 			if (dis.length)
 				return new Date(parseDate(dis, this.format));
 			else if (isValidDate(dis))
-				return dis;
+				return new Date(dis.setHours(0, 0, 0, 0));
 			else null;
 		},
 		handleDate(date) {
+			console.log(date);
   		if (date.end) {
 				let s = date.end.getTime() < date.start.getTime() ? date.end : date.start;
 				let e = date.end.getTime() < date.start.getTime() ? date.start : date.end;
@@ -125,50 +133,81 @@ export default {
 			}
 		},
 		handleClose() {
-			if (this.currentInputDate.length > 5) {
-				this.currentInputDate += new Date().getFullYear();
+			if (this.currentInputDate.length > 5 && this.currentInputDate.length < 10) {
+				this.currentInputDate = `${this.currentInputDate.slice(0, 5)}.${new Date().getFullYear()}`;
 				this.handleCurrentInputDate()
+			} else if (!this.currentInputDate.length) {
+				this.isError = false; 
 			} else if (this.value.length) {
 				this.currentInputDate = '';
 			}
 			this.openCalendar = false;
 		},
 		handleCurrentInputDate() {
-			if (this.checkInputDate()) {
+			this.isError = false;
+			if (this.checkInputDate(this.currentInputDate)) {
 				this.currentDate.start = this.handleDateString(this.currentInputDate);
-			} else {
-				let date = new Date(new Date().setHours(0, 0, 0, 0));
-				let dis = this.disableBefore;
-				this.currentInputDate = '';
-				this.currentDate.start = dis && new Date(dis.setHours(0, 0, 0, 0)).getTime() !== date.getTime()  
-					? date
-					: new Date(new Date().setDate(this.disableBefore.getDate() + 1));				
+				this.$emit('input', this.handleDate(this.currentDate));
+			} 
+		},
+		handleRangeInputDate() {
+			let [start, end] = this.currentInputDate
+				.split('-')
+				.map(str => str.trim());
+			if (this.checkInputDate(start) 
+				&& this.checkInputDate(end)) {
+				this.currentDate = {
+					start:  this.handleDateString(start),
+					end:  this.handleDateString(end) 
+				}
+				this.$emit('input', this.handleDate(this.currentDate));
 			}
-			this.$emit('input', this.handleDate(this.currentDate));
 		},
 		handleValue(val) {
-			if (val.length === 2 || val.length === 5)
+			if (this.selectedOption === 'range' 
+				&& val.length === 10) {
+				val += ' - '
+			} else if (
+				val.length === 2 
+				|| val.length === 5
+				|| val.length === 15
+				|| val.length === 18
+			)
 				val += '.';
+
 			this.currentInputDate = val;
 
-			if (this.currentInputDate.length === this.format.length) {
+			if (this.selectedOption === 'one' 
+				&& this.currentInputDate.length === this.format.length) {
 				this.handleCurrentInputDate();
-				this.openCalendar = false;
+			} else if (this.selectedOption === 'range'
+				&& this.currentInputDate.length === 23) {
+				this.handleRangeInputDate();
 			}
+
+			this.openCalendar = false;
 		},
 		keyMonitor(e) {
 			let check = e.keyCode > 95 && e.keyCode < 106 
 			|| e.keyCode > 47 && e.keyCode < 58
-		  || e.keyCode === 8;
+		  || e.keyCode === 8 
+		  || e.keyCode === 37
+		  || e.keyCode === 39;
 			if (!check) e.preventDefault();
 		},
-		checkInputDate() {		
+		checkInputDate(date) {	
 			let disableB = this.disableBefore ? parseDate(this.disableBefore, this.format) : new Date(new Date().setFullYear(new Date().getFullYear() - 100));;
 			let disableA = this.disableAfter  ? parseDate(this.disableAfter, this.format) : null;
 
-			let parsed = parseDate(this.currentInputDate, this.format);
 			let between;
+			let parsed = parseDate(date, this.format);
 
+			if (!parsed) {
+				this.$emit('error');
+				this.isError = true;
+				return false;
+			}
+			
 			if (disableA) {
 				between = isBetween(
 					disableB,
@@ -177,8 +216,14 @@ export default {
 			} else {
 				between = parsed.getTime() > disableB.getTime();
 			}
-			
-			return between && isValidDate(parsed);
+
+			if (!between) {
+				this.$emit('error');
+				this.isError = true;
+				return false;
+			}
+
+			return true;
 		}
 	},
 	computed: {

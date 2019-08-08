@@ -193,6 +193,7 @@ export default {
 					|| this.currentDate.end && day.value.getTime() === this.currentDate.end.getTime()
 				})
 			})
+		this.$emit('set-option', this.selectedOption);
 	},
 	methods: {
  		handleDays(func = null) {
@@ -397,6 +398,7 @@ export default {
 		chooseOption(option) {
 			if (this.selectedOption !== option) {
 				this.selectedOption = option;
+				this.$emit('set-option', option);
 				if (option === 'range') this.hovering = true;
 				this.handleDays((day) => { 
 					day.isActive = false;
