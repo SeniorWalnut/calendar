@@ -3,7 +3,7 @@
 ## Download via npm: 
 
 ```shell
-$ npm install daterange-vue --saves
+$ npm install daterange-vue
 ```
 
 Then add it in your Vue-app just like this:
@@ -12,16 +12,12 @@ import Daterange from 'src/components/Daterange';
 ```
 
 
-Features:
+### Features:
 * Choose between one or range of dates
 * One or two calendars
 * Buttons to switch between mode of choosing the dates
 * Parsing the strings into dates
 
 
-Upcoming:
-* Parsing the range-string
-
-Updates: 
-* Error handling through emits
-* Disable bug - fixed
+### Updates:
+* Disable date bug fix 
