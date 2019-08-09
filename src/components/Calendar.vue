@@ -155,6 +155,7 @@ export default {
 			'MMMM',
 			{ locale: this.localeFormat }
 		);
+
 		if (this.value.end)
 			this.selectedOption = "range";
 
@@ -167,7 +168,10 @@ export default {
 		);
 		this.nextMonthYear = formatDate(this.localDate, 'YYYY');
 
-		let loc = 
+		this.currentDate.start = new Date(this.currentDate.start.setHours(0, 0, 0, 0));
+		if (this.currentDate.end)
+			this.currentDate.end = new Date(this.currentDate.end.setHours(0, 0, 0, 0));
+
 		import('dayjs/locale/' + this.locale.toLowerCase())
 			.then(data => {
 				dayjs.locale(this.locale.toLowerCase());

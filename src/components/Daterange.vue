@@ -22,6 +22,7 @@
 			:maxlength="selectedOption === 'one' ? 10 : 23"
 			autocomplete="off"
 			@focus="openCalendar = true;"
+			@blur="handleClose"
 			:value="currentInputDate"
 		/>
 	</label>
@@ -35,7 +36,7 @@
 			:disable-after="disableAfter ? handleDateString(disableAfter) : null"
 			:disable-before="disableBefore ? handleDateString(disableBefore) : null"
 			:locale="locale"
-			@close="handleClose"
+			@close="() => {handleClose(); this.openCalendar = false}"
 			@set-option="selectedOption = $event"
 			:option="option"
 		/>
@@ -100,16 +101,18 @@ export default {
 			end: null
 		};
 		
-		if (typeof this.value === 'string') {
-			this.currentDate.start = this.handleDateString(this.value);
-			if (!this.value.length) {
-				this.currentDate.start = new Date(new Date().setHours(0, 0, 0, 0));
-				this.currentInputDate = '';
-			}	else
-				this.currentInputDate = formatDate(this.handleDateString(this.value), this.format);
+		if (this.value.start) {
+			this.currentDate = this.value;
+			this.currentInputDate = `${formatDate(this.value.start, this.format)}${this.value.end ? ' - ' + formatDate(this.value.end) : ''}`
 		} else {
 			this.currentDate.start = this.value;
-			this.currentInputDate = formatDate(this.currentDate.start, this.format)
+			this.currentInputDate = formatDate(this.value, this.format);
+		}
+
+		if (!this.checkInputDate(this.currentDate.start)
+			|| (this.currentDate.end && !this.checkInputDate(this.currentDate.end))) {
+			this.isError = true;
+			this.$emit('error');
 		}
 	},
 	methods: {
@@ -121,7 +124,6 @@ export default {
 			else null;
 		},
 		handleDate(date) {
-			console.log(date);
   		if (date.end) {
 				let s = date.end.getTime() < date.start.getTime() ? date.end : date.start;
 				let e = date.end.getTime() < date.start.getTime() ? date.start : date.end;
@@ -135,13 +137,12 @@ export default {
 		handleClose() {
 			if (this.currentInputDate.length > 5 && this.currentInputDate.length < 10) {
 				this.currentInputDate = `${this.currentInputDate.slice(0, 5)}.${new Date().getFullYear()}`;
-				this.handleCurrentInputDate()
+				this.handleCurrentInputDate();
 			} else if (!this.currentInputDate.length) {
 				this.isError = false; 
 			} else if (this.value.length) {
 				this.currentInputDate = '';
 			}
-			this.openCalendar = false;
 		},
 		handleCurrentInputDate() {
 			this.isError = false;
@@ -227,9 +228,6 @@ export default {
 		}
 	},
 	computed: {
-		dateLen() {
-			return this.format.length;
-		},
 		nextCurrentDate() {
 			let year = this.currentDate.start.getFullYear();
 			let month = this.currentDate.start.getMonth();
