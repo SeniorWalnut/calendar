@@ -76,8 +76,7 @@ export default {
 		disableAfter: {type: [String, Date], default:  null},
 		disableBefore: {type: [String, Date], default: null},
 		placeholder: { type: String, default: ''},
-		value: { type: [String, Date, Object], default: ''},
-		denominator: { type: String, default: '.'},
+		value: { type: [Date, Object], default: ''},
 		locale: { type: String, default: 'en'},
 		isDouble: { type: Boolean, default: false},
 		topButtons: { type: Boolean, default: false},
@@ -100,19 +99,23 @@ export default {
 			start: null,
 			end: null
 		};
-		
-		if (this.value.start) {
-			this.currentDate = this.value;
-			this.currentInputDate = `${formatDate(this.value.start, this.format)}${this.value.end ? ' - ' + formatDate(this.value.end) : ''}`
-		} else {
-			this.currentDate.start = this.value;
-			this.currentInputDate = formatDate(this.value, this.format);
-		}
 
-		if (!this.checkInputDate(this.currentDate.start)
-			|| (this.currentDate.end && !this.checkInputDate(this.currentDate.end))) {
-			this.isError = true;
-			this.$emit('error');
+		if (this.value) {
+			if (this.value.start) {
+				this.currentDate = this.value;
+				this.currentInputDate = `${formatDate(this.value.start, this.format)}${this.value.end ? ' - ' + formatDate(this.value.end) : ''}`
+			} else {
+				this.currentDate.start = this.value;
+				this.currentInputDate = formatDate(this.value, this.format);
+			}
+
+			if (!this.checkInputDate(this.currentDate.start)
+				|| (this.currentDate.end && !this.checkInputDate(this.currentDate.end))) {
+				this.isError = true;
+				this.$emit('error');
+			}
+		} else {
+			this.currentDate.start = new Date(new Date().setHours(0, 0, 0, 0));
 		}
 	},
 	methods: {
@@ -140,9 +143,7 @@ export default {
 				this.handleCurrentInputDate();
 			} else if (!this.currentInputDate.length) {
 				this.isError = false; 
-			} else if (this.value.length) {
-				this.currentInputDate = '';
-			}
+			} 
 		},
 		handleCurrentInputDate() {
 			this.isError = false;
@@ -224,6 +225,7 @@ export default {
 				return false;
 			}
 
+			this.isError = false;
 			return true;
 		}
 	},

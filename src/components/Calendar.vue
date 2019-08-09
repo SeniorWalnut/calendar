@@ -359,16 +359,18 @@ export default {
 			if (!this.currentDate.start){
 				this.setOne(date);
 			} else {
-				this.currentDate.end = date;
-				this.hovering = false;
-				if (date.getTime() < start.getTime())
-					[this.currentDate.end, this.currentDate.start] = [start, end];
+				if (date.getTime() !== this.currentDate.start.getTime()) {
+					this.currentDate.end = date;
+					this.hovering = false;
+					if (date.getTime() < start.getTime())
+						[this.currentDate.end, this.currentDate.start] = [start, end];
 
-				let [s, e] = [
-					this.currentDate.start,
-					this.currentDate.end
-				]
-				this.$emit('input', {start: s, end: e})
+					let [s, e] = [
+						this.currentDate.start,
+						this.currentDate.end
+					]
+					this.$emit('input', {start: s, end: e})
+				}
 			}
 		},
 		hoverRange(date) {
