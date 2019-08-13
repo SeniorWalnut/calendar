@@ -89,7 +89,7 @@ export default {
 		error: { type: Boolean, default: false},
 		required: { type: Boolean, default: false},
 		errorMessage: { type: String, default: ''},
-		buttonNames: { type: Array, default: ['One', 'Range']}
+		buttonNames: { type: Array, default: () => ['One', 'Range']}
 	},
 	watch: {
 		currentInputDate(val) {
