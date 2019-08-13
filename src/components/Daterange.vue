@@ -100,23 +100,34 @@ export default {
 			end: null
 		};
 
-		if (this.value) {
+		if (isValidDate(this.value)) {
+			this.currentDate.start = this.value;
+			this.currentInputDate = formatDate(this.value, this.format);
+		} else if (this.value) {
 			if (this.value.start) {
 				this.currentDate = this.value;
-				this.currentInputDate = `${formatDate(this.value.start, this.format)}${this.value.end ? ' - ' + formatDate(this.value.end) : ''}`
+				let {start, end} = this.currentDate;
+				if (end && start.getTime() > end.getTime())
+					[this.currentDate.start, this.currentDate.end] = [end, start];
+				this.currentInputDate = `${formatDate(this.value.start, this.format)}${this.value.end ? ' - ' + formatDate(this.value.end, this.format) : ''}`;
 			} else {
-				this.currentDate.start = this.value;
-				this.currentInputDate = formatDate(this.value, this.format);
-			}
-
-			if (!this.checkInputDate(this.currentDate.start)
-				|| (this.currentDate.end && !this.checkInputDate(this.currentDate.end))) {
-				this.isError = true;
-				this.$emit('error');
-			}
-		} else {
-			this.currentDate.start = new Date(new Date().setHours(0, 0, 0, 0));
+			 	this.currentDate.start = new Date(new Date().setHours(0, 0, 0, 0));
+			}		
 		}
+		// if (this.value) {
+		// 	if (this.value.start) {
+		// 		this.currentDate = this.value;
+		// 	} else {
+		// 		this.currentDate.start = this.value;
+		// 	}
+
+		// 	if (!this.checkInputDate(this.currentDate.start)
+		// 		|| (this.currentDate.end && !this.checkInputDate(this.currentDate.end))) {
+		// 		this.isError = true;
+		// 		this.$emit('error');
+		// 	}
+		// } else {
+		// }
 	},
 	methods: {
 		handleDateString(dis) {
