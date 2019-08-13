@@ -110,10 +110,10 @@ export default {
 				if (end && start.getTime() > end.getTime())
 					[this.currentDate.start, this.currentDate.end] = [end, start];
 				this.currentInputDate = `${formatDate(this.value.start, this.format)}${this.value.end ? ' - ' + formatDate(this.value.end, this.format) : ''}`;
-			} else {
-			 	this.currentDate.start = new Date(new Date().setHours(0, 0, 0, 0));
-			}		
-		}
+			} 
+		} else {
+		 	this.currentDate.start = new Date(new Date().setHours(0, 0, 0, 0));
+		}		
 		// if (this.value) {
 		// 	if (this.value.start) {
 		// 		this.currentDate = this.value;
