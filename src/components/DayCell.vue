@@ -39,7 +39,7 @@ export default {
 
 <style lang="scss">
 $active: #ff8584;
-$hovered: #E5AFAB;
+$hovered: #FFEDED;;
 $disabled: #e3e4e9;
 	.day-cell {
 		cursor: pointer;
@@ -51,7 +51,6 @@ $disabled: #e3e4e9;
 		}
 		&.hovered {
 			background-color: $hovered;
-			color: white;
 		}
 		&.disabled {
 			color: $disabled;

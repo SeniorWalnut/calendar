@@ -358,6 +358,9 @@ export default {
 			}
 
 			if (!this.currentDate.start){
+				this.handleDays((day) => {
+					day.isHovered = false;
+				})
 				this.setOne(date);
 			} else {
 				if (date.getTime() !== this.currentDate.start.getTime()) {
@@ -503,7 +506,6 @@ $shadow: 0px 0px 3px 2px #e3e4e9;
 		}
 	}
 	&__arrow {
-	// background-color: $arrow;
 	padding: 14px;
 	position: relative;
 	cursor: pointer;
@@ -556,9 +558,6 @@ $shadow: 0px 0px 3px 2px #e3e4e9;
 			align-items: center;
 			justify-content: space-between;
 		}
-	}
-	&-bottom {
-		&__daycell {}
 	}
 	&-date {
 		border-collapse: collapse;
