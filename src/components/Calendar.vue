@@ -9,13 +9,13 @@
 							class="calendar-buttons__one"
 							@click="chooseOption('one')"
 							:class="{active: selectedOption === 'one'}"
-						>One
+						> {{ buttonNames[0] }}
 					</div>
 					<div 
 							class="calendar-buttons__range"
 							@click="chooseOption('range')"
 							:class="{active: selectedOption === 'range'}"
-						>Range</div>
+						>{{ buttonNames[1] }}</div>
 					</div>
 			</div>
 			<div class="calendar-main">
@@ -133,7 +133,8 @@ export default {
 		topButtons: { type: Boolean, default: false},
 		isDouble: { type: Boolean, default: false},
 		value: { type: [Object], default: null},
-		option: { type: String, default: 'one'}
+		option: { type: String, default: 'one'},
+		buttonNames: { type: Array, default: () => []}
 
 	},
 	created() {

@@ -21,3 +21,5 @@ import Daterange from 'src/components/Daterange';
 
 ### Updates:
 * Disable date bug fix 
+* Custom button names
+* Error message

@@ -25,6 +25,10 @@
 			@blur="handleClose"
 			:value="currentInputDate"
 		/>
+		<div 
+			v-if="isError && errorMessage.length"
+			class="daterange__error"
+		>{{ errorMessage }}</div>
 	</label>
 	<div class="daterange__calendar">
 		<calendar
@@ -39,6 +43,7 @@
 			@close="() => {handleClose(); this.openCalendar = false}"
 			@set-option="selectedOption = $event"
 			:option="option"
+			:button-names="buttonNames"
 		/>
 	</div>
 </div>
@@ -82,7 +87,9 @@ export default {
 		topButtons: { type: Boolean, default: false},
 		option: { type: String, default: 'one'},
 		error: { type: Boolean, default: false},
-		required: { type: Boolean, default: false}
+		required: { type: Boolean, default: false},
+		errorMessage: { type: String, default: ''},
+		buttonNames: { type: Array, default: ['One', 'Range']}
 	},
 	watch: {
 		currentInputDate(val) {
@@ -296,6 +303,12 @@ $calendarBack: #fff;
 		position: absolute;
 		background-color: $calendarBack;
 		z-index: 1000;
+	}
+	&__error {
+		font-size: 12px;
+		color: $errorColor;
+		margin-top: 3px;
+		font-weight: 500;
 	}
 	&__input {
 		padding: 11px 0 13px 9px;
