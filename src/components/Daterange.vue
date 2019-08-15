@@ -102,9 +102,11 @@ export default {
 				this.currentInputDate += ' - ';
 		},
 		currentDate(old, val) {
-			if ((!val.end && val.start.getTime() !== old.start.getTime())
-				|| val.end && val.start)
-				this.openCalendar = false;
+			if (val.start !== undefined) {
+				if ((!val.end && val.start.getTime() !== old.start.getTime())
+					|| val.end && val.start)
+					this.openCalendar = false;
+			}
 		}
 	},
 	created() {
