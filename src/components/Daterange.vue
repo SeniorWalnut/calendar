@@ -15,6 +15,7 @@
 		<input 
 			id="daterange" 
 			type="text" 
+			v-bind="$attrs"
 			class="daterange__input"
 			:class="{error: error || isError}"
 			@input="handleValue($event.target.value)"
@@ -63,6 +64,7 @@ export default {
 	directives: {
     'on-click-outside': onClickOutside,
   },
+  inheritAttrs: false,
 	components: { Calendar },
 	data() { 
 		return {
