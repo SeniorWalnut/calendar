@@ -1,6 +1,7 @@
 <template>
 <div 
 	class="daterange"
+	v-on-click-outside='handleClose'
 >
 	<label 
 		class="daterange__wrap" 
@@ -22,7 +23,6 @@
 			:maxlength="selectedOption === 'one' ? 10 : 23"
 			autocomplete="off"
 			@focus="openCalendar = true;"
-			@blur="handleClose"
 			:value="currentInputDate"
 		/>
 		<div 
@@ -35,12 +35,11 @@
 			v-if="openCalendar"
 			:top-buttons="topButtons"
 			v-model="currentDate"
-			@input="$emit('input', handleDate($event)); isError = false"
+			@input="$emit('input', handleDate($event)); isError = false;"
 			:is-double="isDouble"
 			:disable-after="disableAfter ? handleDateString(disableAfter) : null"
 			:disable-before="disableBefore ? handleDateString(disableBefore) : null"
 			:locale="locale"
-			@close="() => {handleClose(); this.openCalendar = false}"
 			@set-option="selectedOption = $event"
 			:option="option"
 			:button-names="buttonNames"
@@ -58,10 +57,12 @@ import
 	isValidDate
 } from '../config/dates-helpers'; 
 import dayjs from 'dayjs';
-// import customParseFormat from 'dayjs/plugin/customParseFormat';
-// dayjs.extend(customParseFormat);
+import { directive as onClickOutside } from 'vue-on-click-outside';
 
 export default {
+	directives: {
+    'on-click-outside': onClickOutside,
+  },
 	components: { Calendar },
 	data() { 
 		return {
@@ -99,6 +100,11 @@ export default {
 			if (this.currentInputDate.length === 10
 				&& val === 'range')
 				this.currentInputDate += ' - ';
+		},
+		currentDate(old, val) {
+			if ((!val.end && val.start.getTime() !== old.start.getTime())
+				|| val.end && val.start)
+				this.openCalendar = false;
 		}
 	},
 	created() {
@@ -123,20 +129,6 @@ export default {
 		} else {
 		 	this.currentDate.start = new Date(new Date().setHours(0, 0, 0, 0));
 		}		
-		// if (this.value) {
-		// 	if (this.value.start) {
-		// 		this.currentDate = this.value;
-		// 	} else {
-		// 		this.currentDate.start = this.value;
-		// 	}
-
-		// 	if (!this.checkInputDate(this.currentDate.start)
-		// 		|| (this.currentDate.end && !this.checkInputDate(this.currentDate.end))) {
-		// 		this.isError = true;
-		// 		this.$emit('error');
-		// 	}
-		// } else {
-		// }
 	},
 	methods: {
 		handleDateString(dis) {
@@ -158,17 +150,22 @@ export default {
 			}
 		},
 		handleClose() {
-			if (this.currentInputDate.length > 5 && this.currentInputDate.length < 10) {
-				this.currentInputDate = `${this.currentInputDate.slice(0, 5)}.${new Date().getFullYear()}`;
-				this.handleCurrentInputDate();
-			} else if (!this.currentInputDate.length) {
-				this.isError = false; 
-			} 
+			if (this.openCalendar) {
+				if (this.currentInputDate.length > 5 && this.currentInputDate.length < 10) {
+					this.currentInputDate = `${this.currentInputDate.slice(0, 5)}.${new Date().getFullYear()}`;
+					this.handleCurrentInputDate();
+				} else if (!this.currentInputDate.length) {
+					this.isError = false; 
+				} 
+				this.openCalendar = false;
+				this.$emit('close');
+			}
 		},
 		handleCurrentInputDate() {
 			this.isError = false;
 			if (this.checkInputDate(this.currentInputDate)) {
 				this.currentDate.start = this.handleDateString(this.currentInputDate);
+				this.openCalendar = false;
 				this.$emit('input', this.handleDate(this.currentDate));
 			} 
 		},
@@ -196,7 +193,6 @@ export default {
 				|| val.length === 18
 			)
 				val += '.';
-
 			this.currentInputDate = val;
 
 			if (this.selectedOption === 'one' 
@@ -206,8 +202,6 @@ export default {
 				&& this.currentInputDate.length === 23) {
 				this.handleRangeInputDate();
 			}
-
-			this.openCalendar = false;
 		},
 		keyMonitor(e) {
 			let check = e.keyCode > 95 && e.keyCode < 106 

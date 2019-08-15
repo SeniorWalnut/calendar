@@ -86,10 +86,6 @@
 					</div>
 				</div>
 			</div>
-			<div 
-				class="close-button"
-				@click="$emit('close')"
-			></div>
 	</div>
 </template>
 <script>
@@ -577,28 +573,4 @@ $shadow: 0px 0px 3px 2px #e3e4e9;
 	
 }
 
-.close-button {
-	position: absolute;
-  top: 5px;
-  right: 5px;
-  padding: 10px;
-  cursor: pointer;
-  &::after,
-  &::before {
-  	content: '';
-    display: block;
-    height: 15px;
-    width: 2px;
-    border-radius: 2px;
-    position: absolute;
-    background-color: black;
-  }
-
-  &::before {
-  	transform: translate(-50%, -50%) rotate(45deg);
-  }
-	&::after {
-  	transform: translate(-50%, -50%) rotate(-45deg);
-	}
-}
 </style>
