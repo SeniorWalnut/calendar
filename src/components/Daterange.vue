@@ -41,7 +41,7 @@
 			:disable-after="disableAfter ? handleDateString(disableAfter) : null"
 			:disable-before="disableBefore ? handleDateString(disableBefore) : null"
 			:locale="locale"
-			@set-option="selectedOption = $event"
+			@set-option="selectedOption = $event; $emit('option', $event)"
 			:option="option"
 			:button-names="buttonNames"
 		/>
