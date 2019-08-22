@@ -116,7 +116,7 @@ export default {
 			days: [],
 			currentDate: null,
 			selectedOption: this.option,
-			hovering: true,
+			hovering: false,
 			nextLocalMonth: null,
 			nextMonthYear: null,
 			weekCount: 0
@@ -138,14 +138,17 @@ export default {
 		let before = this.disableBefore;
 		this.currentDate = this.value;
 
-		if (before && before.getTime() > this.currentDate.start.getTime())
+		if (!this.value || (!this.value.start && !this.value.end)) {
+			this.localDate = new Date(new Date().setHours(0, 0, 0, 0));
+			this.currentDate.start = this.localDate
+		} else if (!isValidDate(this.value))
+			this.localDate = this.currentDate.start;
+
+		if (before && new Date(before.setHours(0, 0, 0, 0)).getTime() > this.currentDate.start.getTime())
 			this.currentDate.start = before;
-		else if (after && after.getTime() < this.currentDate.start.getTime())
+		else if (after && new Date(after.setHours(0, 0, 0, 0)).getTime() < this.currentDate.start.getTime())
 			this.currentDate.start = after;
 		
-		if (!isValidDate(this.value)) {
-			this.localDate = this.currentDate.start;
-		} else this.localDate = this.currentDate;
 		this.localMonth = formatDate(
 			this.localDate, 
 			'MMMM',
@@ -358,6 +361,7 @@ export default {
 				})
 				this.setOne(date);
 			} else {
+				this.hovering = true;
 				if (date.getTime() !== this.currentDate.start.getTime()) {
 					this.currentDate.end = date;
 					this.hovering = false;
@@ -395,10 +399,9 @@ export default {
 		setDay(val) {
 			if (this.selectedOption === 'one')
 				this.setOne(val);
-			else if (this.selectedOption === 'range')
+			else if (this.selectedOption === 'range') {
 				this.setRange(val);
-
-			this.$emit('clear');
+			}
 		},
 		chooseOption(option) {
 			if (this.selectedOption !== option) {
@@ -410,7 +413,7 @@ export default {
 					day.isHovered = false; 
 				});
 				this.currentDate = {
-					start: this.value.start,
+					start: null,
 					end: null 
 				}
 

@@ -99,15 +99,12 @@ export default {
 			if (!val.length) this.isError = false;
 		},
 		selectedOption(old, val) {
-			if (old !== val) {
+			if (old !== val) 
 				this.currentInputDate = '';
-			} else if (this.currentInputDate.length === 10
-				&& val === 'range')
-				this.currentInputDate += ' - ';
 		},
 		currentDate(old, val) {
 			if (val.start !== undefined) {
-				if ((!val.end && val.start.getTime() !== old.start.getTime())
+				if ((val.start && val.start.getTime() !== old.start.getTime())
 					|| val.end && val.start)
 					this.openCalendar = false;
 			}
@@ -160,6 +157,10 @@ export default {
 				if (this.currentInputDate.length > 5 && this.currentInputDate.length < 10) {
 					this.currentInputDate = `${this.currentInputDate.slice(0, 5)}.${new Date().getFullYear()}`;
 					this.handleCurrentInputDate();
+				// } else if (this.selectedOption === 'range' &&
+				// 	this.currentInputDate.length > 18 && this.currentInputDate.length < 21) {
+				// 	this.currentInputDate = `${this.currentInputDate.slice(0, 18)}.${new Date().getFullYear()}`;
+				// 	this.handleCurrentInputDate();
 				} else if (!this.currentInputDate.length) {
 					this.isError = false; 
 				} 
