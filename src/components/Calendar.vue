@@ -456,7 +456,7 @@ $shadow: 0px 0px 3px 2px #e3e4e9;
 	    cursor: pointer;
 	    font-size: 14px;
 	    line-height: 14px;
-	    padding: 11px 0;
+	    padding: 11px 3px;
 	    border-radius: 2px;
 	    min-width: 107px;
 	    text-align: center;
