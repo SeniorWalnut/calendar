@@ -136,7 +136,6 @@ export default {
 	created() {
 		let after = this.disableAfter;
 		let before = this.disableBefore;
-		
 		this.currentDate = this.value;
 
 		if (before && before.getTime() > this.currentDate.start.getTime())

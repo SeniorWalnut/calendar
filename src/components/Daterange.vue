@@ -98,8 +98,10 @@ export default {
 		currentInputDate(val) {
 			if (!val.length) this.isError = false;
 		},
-		selectedOption(val) {
-			if (this.currentInputDate.length === 10
+		selectedOption(old, val) {
+			if (old !== val) {
+				this.currentInputDate = '';
+			} else if (this.currentInputDate.length === 10
 				&& val === 'range')
 				this.currentInputDate += ' - ';
 		},
