@@ -366,7 +366,7 @@ export default {
 					this.currentDate.end = date;
 					this.hovering = false;
 					if (date.getTime() < start.getTime())
-						[this.currentDate.end, this.currentDate.start] = [start, end];
+						[this.currentDate.end, this.currentDate.start] = [start, date];
 
 					let [s, e] = [
 						this.currentDate.start,

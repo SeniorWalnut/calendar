@@ -36,7 +36,7 @@
 			v-if="openCalendar"
 			:top-buttons="topButtons"
 			v-model="currentDate"
-			@input="$emit('input', handleDate($event)); isError = false;"
+			@input="handleInput"
 			:is-double="isDouble"
 			:disable-after="disableAfter ? handleDateString(disableAfter) : null"
 			:disable-before="disableBefore ? handleDateString(disableBefore) : null"
@@ -104,7 +104,7 @@ export default {
 		},
 		currentDate(old, val) {
 			if (val.start !== undefined) {
-				if ((val.start && val.start.getTime() !== old.start.getTime())
+				if ((val.start && old.start && val.start.getTime() !== old.start.getTime())
 					|| val.end && val.start)
 					this.openCalendar = false;
 			}
@@ -134,6 +134,12 @@ export default {
 		}		
 	},
 	methods: {
+		handleInput(date) {
+			this.$emit('input', this.handleDate(date)); 
+			this.isError = false;
+			// this.openCalendar = !(this.selectedOption === 'range' && !!date.start && !!date.end 
+			// 	|| this.selectedOption === 'one');
+		},
 		handleDateString(dis) {
 			if (dis.length)
 				return new Date(parseDate(dis, this.format));
