@@ -144,10 +144,14 @@ export default {
 		} else if (!isValidDate(this.value))
 			this.localDate = this.currentDate.start;
 
-		if (before && new Date(before.setHours(0, 0, 0, 0)).getTime() > this.currentDate.start.getTime())
+		if (before && new Date(before.setHours(0, 0, 0, 0)).getTime() > this.currentDate.start.getTime()) {
+			this.localDate = before;
 			this.currentDate.start = before;
-		else if (after && new Date(after.setHours(0, 0, 0, 0)).getTime() < this.currentDate.start.getTime())
+		}
+		else if (after && new Date(after.setHours(0, 0, 0, 0)).getTime() < this.currentDate.start.getTime()) {
+			this.localDate = after;
 			this.currentDate.start = after;
+		}
 		
 		this.localMonth = formatDate(
 			this.localDate, 
