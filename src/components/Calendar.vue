@@ -111,8 +111,6 @@ export default {
 			localDate: null,
 			localMonth: null,
 			localYear: null,
-			localeFormat: this.locale.toLowerCase(),
-			
 			days: [],
 			currentDate: null,
 			selectedOption: this.option,
@@ -133,9 +131,15 @@ export default {
 		buttonNames: { type: Array, default: () => []}
 
 	},
+	watch: {
+		locale(val) {
+			this.changeLocale(val);
+		}
+	},
 	created() {
-		let after = this.disableAfter;
-		let before = this.disableBefore;
+		const after = this.disableAfter;
+		const before = this.disableBefore;
+		const locale = this.locale.toLowerCase();
 		this.currentDate = this.value;
 
 		if (!this.value || (!this.value.start && !this.value.end)) {
@@ -156,7 +160,7 @@ export default {
 		this.localMonth = formatDate(
 			this.localDate, 
 			'MMMM',
-			{ locale: this.localeFormat }
+			{ locale }
 		);
 
 		if (this.value.end)
@@ -167,7 +171,7 @@ export default {
 		this.nextLocalMonth = formatDate(
 				new Date(new Date().setMonth(this.localDate.getMonth() + 1)), 
 				'MMMM',
-				{ locale: this.locale }
+				{ locale }
 		);
 		this.nextMonthYear = formatDate(this.localDate, 'YYYY');
 
@@ -175,22 +179,29 @@ export default {
 		if (this.currentDate.end)
 			this.currentDate.end = new Date(this.currentDate.end.setHours(0, 0, 0, 0));
 
-		import('dayjs/locale/' + this.locale.toLowerCase())
+		this.changeLocale(locale);
+		this.$emit('set-option', this.selectedOption);
+	},
+	methods: {
+		changeLocale(val) {
+			const locale = val.toLowerCase();
+			this.$emit('fetched', false);
+			import('dayjs/locale/' + locale)
 			.then(data => {
-				dayjs.locale(this.locale.toLowerCase());
+				dayjs.locale(locale);
 			})
 			.then(() => {
 				this.localMonth = formatDate(
 				this.localDate, 
 					'MMMM',
-					{ locale: this.locale }
+					{ locale }
 				);
 
 				if (this.isDouble) {
 					this.nextLocalMonth = formatDate(
 						new Date(new Date().setMonth(this.localDate.getMonth() + 1)), 
 						'MMMM',
-						{ locale: this.locale }
+						{ locale }
 					);
 				}
 				this.monthDays();
@@ -199,11 +210,9 @@ export default {
 					day.isActive = day.value.getTime() === this.currentDate.start.getTime()
 					|| this.currentDate.end && day.value.getTime() === this.currentDate.end.getTime()
 				});
-				this.$emit('fetched');
+				this.$emit('fetched', true);
 			})
-		this.$emit('set-option', this.selectedOption);
-	},
-	methods: {
+		},
  		handleDays(func = null) {
 			this.days.forEach(week => {
 				week.forEach(day => func(day))
