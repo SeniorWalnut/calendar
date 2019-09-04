@@ -33,7 +33,7 @@
 	</label>
 	<div class="daterange__calendar">
 		<calendar
-			v-if="openCalendar"
+			v-show="openCalendar && isFetched"
 			:top-buttons="topButtons"
 			v-model="currentDate"
 			@input="handleInput"
@@ -44,6 +44,7 @@
 			@set-option="selectedOption = $event; $emit('option', $event)"
 			:option="option"
 			:button-names="buttonNames"
+			@fetched="isFetched = true"
 		/>
 	</div>
 </div>
@@ -76,7 +77,8 @@ export default {
 			currentDate: '',
 			format: 'DD.MM.YYYY',
 			selectedOption: this.option,
-			isError: false
+			isError: false,
+			isFetched: false
 		} 
 	},
 	props: {

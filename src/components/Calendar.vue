@@ -198,7 +198,8 @@ export default {
 					day.value.setHours(0, 0, 0, 0);
 					day.isActive = day.value.getTime() === this.currentDate.start.getTime()
 					|| this.currentDate.end && day.value.getTime() === this.currentDate.end.getTime()
-				})
+				});
+				this.$emit('fetched');
 			})
 		this.$emit('set-option', this.selectedOption);
 	},
