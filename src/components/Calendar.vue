@@ -132,9 +132,6 @@ export default {
 
 	},
 	watch: {
-		value(val) {
-			console.log(val);
-		},
 		locale(val) {
 			this.changeLocale(val);
 		}
