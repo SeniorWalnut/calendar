@@ -13,7 +13,6 @@
 			:class="{required: required}"
 		>{{ title }}</h1>
 		<input 
-			id="daterange" 
 			type="text" 
 			v-bind="$attrs"
 			class="daterange__input"
@@ -101,7 +100,7 @@ export default {
 			if (!val.length) this.isError = false;
 		},
 		selectedOption(old, val) {
-			if (old !== val) 
+			if (old !== val)
 				this.currentInputDate = '';
 		}
 	},
@@ -117,10 +116,10 @@ export default {
 		} else if (this.value) {
 			if (this.value.start) {
 				this.currentDate = this.value;
-				let {start, end} = this.currentDate;
+				const {start, end} = this.currentDate;
 				if (end && start.getTime() > end.getTime())
 					[this.currentDate.start, this.currentDate.end] = [end, start];
-				this.currentInputDate = `${formatDate(this.value.start, this.format)}${this.value.end ? ' - ' + formatDate(this.value.end, this.format) : ''}`;
+				this.currentInputDate = `${formatDate(start, this.format)}${end ? ' - ' + formatDate(end, this.format) : ''}`;
 			} else {
 		 		this.currentDate.start = new Date(new Date().setHours(0, 0, 0, 0));
 			}
@@ -198,8 +197,6 @@ export default {
 				|| val.length === 18
 			)
 				val += '.';
-			this.currentInputDate = val;
-
 			if (this.selectedOption === 'one' 
 				&& this.currentInputDate.length === this.format.length) {
 				this.handleCurrentInputDate();
