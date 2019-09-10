@@ -94,11 +94,8 @@ export default {
 		buttonNames: { type: Array, default: () => ['One', 'Range']}
 	},
 	watch: {
-		value(val, old) {
-			if (val.getTime() !== old.getTime()) {
-				this.currentDate.start = val;
-				this.currentInputDate = formatDate(this.currentDate.start, this.format);
-			}
+		value(val) {
+			this.onCreate(val);
 		},
 		currentInputDate(val) {
 			if (!val.length) this.isError = false;
@@ -114,27 +111,30 @@ export default {
 			end: null
 		};
 
-		if (isValidDate(this.value)) {
-			this.currentDate.start = this.value;
-			this.currentInputDate = formatDate(this.value, this.format);
-		} else if (this.value) {
-			if (this.value.start) {
-				this.currentDate = this.value;
-				const {start, end} = this.currentDate;
-				if (end && start.getTime() > end.getTime())
-					[this.currentDate.start, this.currentDate.end] = [end, start];
-				this.currentInputDate = `${formatDate(start, this.format)}${end ? ' - ' + formatDate(end, this.format) : ''}`;
-			} else {
-		 		this.currentDate.start = new Date(new Date().setHours(0, 0, 0, 0));
-			}
-		} else {
-		 	this.currentDate.start = new Date(new Date().setHours(0, 0, 0, 0));
-		}		
+		this.onCreate(this.value);
 	},
 	methods: {
 		handleInput(date) {
 			this.$emit('input', this.handleDate(date)); 
 			this.isError = false;
+		},
+		onCreate(val) {
+			if (isValidDate(val)) {
+				this.currentDate.start = val;
+				this.currentInputDate = formatDate(val, this.format);
+			} else if (val) {
+				if (val.start) {
+					this.currentDate = val;
+					const {start, end} = this.currentDate;
+					if (end && start.getTime() > end.getTime())
+						[this.currentDate.start, this.currentDate.end] = [end, start];
+					this.currentInputDate = `${formatDate(start, this.format)}${end ? ' - ' + formatDate(end, this.format) : ''}`;
+				} else {
+			 		this.currentDate.start = new Date(new Date().setHours(0, 0, 0, 0));
+				}
+			} else {
+			 	this.currentDate.start = new Date(new Date().setHours(0, 0, 0, 0));
+			}		
 		},
 		handleDateString(dis) {
 			if (dis.length)
