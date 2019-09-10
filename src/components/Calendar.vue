@@ -132,6 +132,9 @@ export default {
 
 	},
 	watch: {
+		value(val) {
+			console.log(val);
+		},
 		locale(val) {
 			this.changeLocale(val);
 		}
@@ -185,7 +188,6 @@ export default {
 	methods: {
 		changeLocale(val) {
 			const locale = val.toLowerCase();
-			this.$emit('fetched', false);
 			import('dayjs/locale/' + locale)
 			.then(data => {
 				dayjs.locale(locale);
@@ -210,7 +212,6 @@ export default {
 					day.isActive = day.value.getTime() === this.currentDate.start.getTime()
 					|| this.currentDate.end && day.value.getTime() === this.currentDate.end.getTime()
 				});
-				this.$emit('fetched', true);
 			})
 		},
  		handleDays(func = null) {
