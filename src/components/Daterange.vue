@@ -321,6 +321,7 @@ $calendarBack: #fff;
 		font-weight: 500;
 		width: 100%;
 		outline: none;
+		box-sizing: border-box;
 		&.error {
 			outline: $errorColor solid 1px;
 		}
