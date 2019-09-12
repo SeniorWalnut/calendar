@@ -133,7 +133,8 @@ export default {
 			 		this.currentDate.start = new Date(new Date().setHours(0, 0, 0, 0));
 				}
 			} else {
-			 	this.currentDate.start = new Date(new Date().setHours(0, 0, 0, 0));
+			 	this.currentDate.start = null;
+			 	this.currentInputDate = '';
 			}		
 		},
 		handleDateString(dis) {
