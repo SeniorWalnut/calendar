@@ -20,26 +20,35 @@
 			</div>
 			<div class="calendar-main">
 				<div class="calendar-main__top">
+					<div class="calendar__selects">
+						<option-select 
+							:cur-val="localMonth"
+							@click="monthWindow = $event; yearWindow  = false"
+						/>
+						<option-select 
+							:cur-val="localYear"
+							@click="yearWindow = $event; monthWindow = false"
+						/>
+					</div>
 					<div 
-						class="calendar__arrow left"
-						@click="prevMonth"
-					></div>
-					<div 
-						class="calendar__month"
-						:class="{'doubled-left': isDouble}"
-					>{{ localMonth }}, {{ localYear }}</div>
-					<div 
-						v-if="isDouble" 
-						class="calendar__month"
+						class="calendar__selects"
+						v-if="isDouble"
 						:class="{'doubled-right': isDouble}"
-					>{{ nextLocalMonth }}, {{ nextMonthYear }}</div>
-					<div 
-					class="calendar__arrow right"
-					@click="nextMonth"
-				></div>
-				</div>
+					>
+						<option-select 
+							@click="nextMonthWindow = $event"
+							:cur-val="nextLocalMonth"
+						/>
+						<option-select 
+							@click="nextYearWindow = $event"
+							:cur-val="nextMonthYear"
+						/>
+					</div>
 				<div class="calendar-main__calendars">
-					<div class="calendar calendar-left">
+					<div
+						class="calendar calendar-left"
+						v-if="!checkSetWindow"
+					>
 						<div class="calendar-date__day-names">
 							<div v-for="name in dayNames">
 								{{ name }}
@@ -61,8 +70,18 @@
 						</table>
 					</div>
 					<div 
+						class="calendar__set-windows"
+						v-if="checkSetWindow"
+					>
+						<set-window
+							:values="currentWindow"
+							:arrows="monthWindow"
+							:cur-val="currentWindowVal"
+						/>
+					</div>
+					<div 
 						class="calendar calendar-right"
-						v-if="isDouble"
+						v-if="isDouble && !checkSecondSetWindow"
 					>
 						<div class="calendar-date__day-names">
 							<div v-for="name in dayNames">
@@ -84,14 +103,26 @@
 							</tr>
 						</table>
 					</div>
+					<div 
+						class="calendar__set-windows"
+						v-if="isDouble && checkSecondSetWindow"
+					>
+						<set-window
+							:values="secondWindow"
+							:arrows="nextMonthWindow"
+							:cur-val="secondWindowVal"
+						/>
+					</div>
 				</div>
 			</div>
+		</div>
 	</div>
 </template>
 <script>
 
 import DayCell from './DayCell';
-import { months } from '../config/calendar-assets.js';
+import OptionSelect from "./OptionSelect";
+import SetWindow from "./SetWindow";
 import { getDates } from '../config/array-of-dates.js';
 import dayjs from 'dayjs';
 import { 
@@ -101,11 +132,15 @@ import {
 	startOfMonth,
 	isBetween,
 	formatDate,
-	isValidDate
+	isValidDate,
 } from '../config/dates-helpers.js';
 
 export default {
-	components: { DayCell },
+	components: { 
+		DayCell,
+		SetWindow,
+		OptionSelect
+	},
 	data() {
 		return {
 			localDate: null,
@@ -117,7 +152,11 @@ export default {
 			hovering: false,
 			nextLocalMonth: null,
 			nextMonthYear: null,
-			weekCount: 0
+			weekCount: 0,
+			monthWindow: false,
+			yearWindow: false,			
+			nextMonthWindow: false,
+			nextYearWindow: false,
 		}
 	},
 	props: {
@@ -159,7 +198,7 @@ export default {
 		
 		this.localMonth = formatDate(
 			this.localDate, 
-			'MMMM',
+			'MMM',
 			{ locale }
 		);
 
@@ -192,7 +231,7 @@ export default {
 			.then(() => {
 				this.localMonth = formatDate(
 				this.localDate, 
-					'MMMM',
+					'MMM',
 					{ locale }
 				);
 
@@ -216,67 +255,67 @@ export default {
 				week.forEach(day => func(day))
 			})
 		},
-		prevMonth() {
-			let month = this.localDate.getMonth();
-			let year = this.localDate.getFullYear();
-			if (month === 0) {
-				month = 12;
-				year -= 1;
-			}
+		// prevMonth() {
+		// 	let month = this.localDate.getMonth();
+		// 	let year = this.localDate.getFullYear();
+		// 	if (month === 0) {
+		// 		month = 12;
+		// 		year -= 1;
+		// 	}
 
-			if (this.isDouble) {
-				this.nextLocalMonth = this.localMonth;
-				this.nextMonthYear = this.localYear;
-			}
+		// 	if (this.isDouble) {
+		// 		this.nextLocalMonth = this.localMonth;
+		// 		this.nextMonthYear = this.localYear;
+		// 	}
 			
-			let date = new Date(year, month, 1, 0, 0, 0, 0);
-			date.setMonth(month - 1);
-			date.setFullYear(year);
+		// 	let date = new Date(year, month, 1, 0, 0, 0, 0);
+		// 	date.setMonth(month - 1);
+		// 	date.setFullYear(year);
 
-			this.localDate = date;
-			this.localMonth = (formatDate(
-				date, 
-				'MMMM', 
-				{ locale: this.locale})
-			);
-			this.localYear = this.getYear(date);
+		// 	this.localDate = date;
+		// 	this.localMonth = (formatDate(
+		// 		date, 
+		// 		'MMMM', 
+		// 		{ locale: this.locale})
+		// 	);
+		// 	this.localYear = this.getYear(date);
 
 
-			this.monthDays();
-			this.getYear(this.localDate);
-		},
-		nextMonth() {
-			let month = this.localDate.getMonth();
-			let year = this.localDate.getFullYear();
-			if (month === 11) {
-				month = -1
-				year += 1;
-			}
+		// 	this.monthDays();
+		// 	this.getYear(this.localDate);
+		// },
+		// nextMonth() {
+		// 	let month = this.localDate.getMonth();
+		// 	let year = this.localDate.getFullYear();
+		// 	if (month === 11) {
+		// 		month = -1
+		// 		year += 1;
+		// 	}
 
-			let date = new Date(year, month, 1, 0, 0, 0, 0);
-			date.setMonth(month + 1); 
-			date.setFullYear(year);
+		// 	let date = new Date(year, month, 1, 0, 0, 0, 0);
+		// 	date.setMonth(month + 1); 
+		// 	date.setFullYear(year);
 
-			this.localDate = date;
-			this.localMonth = (formatDate(
-				this.localDate,
-				'MMMM', 
-				{ locale: this.locale})
-			);
-			this.localYear = this.getYear(date);
+		// 	this.localDate = date;
+		// 	this.localMonth = (formatDate(
+		// 		this.localDate,
+		// 		'MMMM', 
+		// 		{ locale: this.locale})
+		// 	);
+		// 	this.localYear = this.getYear(date);
 
-			if (this.isDouble) {
-				this.nextLocalMonth = formatDate(new Date(new Date().setMonth(date.getMonth() + 1)), 'MMMM');
-				this.nextMonthYear = formatDate(
-					date.getMonth() === 11 ? 
-					new Date(new Date().setFullYear(date.getFullYear() + 1)) :
-					date
-				, 'YYYY');
-			}
+		// 	if (this.isDouble) {
+		// 		this.nextLocalMonth = formatDate(new Date(new Date().setMonth(date.getMonth() + 1)), 'MMMM');
+		// 		this.nextMonthYear = formatDate(
+		// 			date.getMonth() === 11 ? 
+		// 			new Date(new Date().setFullYear(date.getFullYear() + 1)) :
+		// 			date
+		// 		, 'YYYY');
+		// 	}
 
-			this.monthDays();
-			this.getYear(this.localDate);
-		},
+		// 	this.monthDays();
+		// 	this.getYear(this.localDate);
+		// },
 		monthDays() {
 			this.days = [];
 			let weekStart = this.locale !== 'en';
@@ -439,6 +478,44 @@ export default {
 			if (this.locale === 'en')
 				return  ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 			return ['M','T', 'W', 'T', 'F', 'S', 'S'];
+		},
+		generateLocaleMonths() {
+			const res = [];
+			for (let i = 0; i < 12; i++)
+				res.push(dayjs().month(i).format('MMM'))
+			return res;
+		},
+		generateYears() {
+			const res = [];
+			for (let i = this.localYear; i < this.localYear + 12; i++)
+				res.push(i);
+			return res;
+		},
+		checkSetWindow() {
+			return this.monthWindow
+				|| this.yearWindow
+		},
+		checkSecondSetWindow() {
+			return this.nextMonthWindow
+				|| this.nextYearWindow
+		},
+		currentWindow() {
+			if (this.monthWindow)
+				return this.generateLocaleMonths;
+			else if (this.yearWindow)
+				return this.generateYears;
+		},
+		currentWindowVal() {
+			if (this.monthWindow)
+				return this.localMonth;
+			else if (this.yearWindow)
+				return this.localYear;
+		},
+		secondWindow() {
+			return;
+		},
+		secondWindowVal() {
+			return;
 		}
 	}
 }
@@ -509,56 +586,14 @@ $shadow: 0px 0px 3px 2px #e3e4e9;
 			display: flex;
 		}
 
-		&__top {
-			display: flex;
-			justify-content: space-between;
-			align-items: center;
-		}
 	}
-	&__arrow {
-	padding: 14px;
-	position: relative;
-	cursor: pointer;
-	&:hover {
-		box-shadow: $shadow;
-		transition: box-shadow .3s;
+
+	&__selects {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
 	}
-	&::after,
-	&::before {
-		content: '';
-		display: block;
-		background-color: $month;
-		height: 9px;
-		width: 2px;
-		position: absolute;
-		top: 50%; left: 50%;
-	}
-	&::before {
-		transform: translate(-50%, -50%) rotate(45deg);
-	}
-	&::after {
-		transform: translate(-50%, -50%) rotate(-45deg);
-	}
-	&.left {
-		&::before {
-			top: 40%;
-    	left: calc(50% - 2px);
-		}
-		&::after {
-			top: 60%;
-    	left: calc(50% - 2px);
-		}
-	}
-	&.right {
-		transform: rotate(180deg);
-		&::after {
-			top: 60%;
-		}
-		&::before {
-			top: 40%;
-		}
-	}
-}
+
 	&-right {
 		margin-left: 19px;
 	}
