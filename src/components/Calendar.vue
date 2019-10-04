@@ -25,7 +25,7 @@
 					>
 						<div class="calendar__selects">
 							<option-select 
-								:cur-val="localMonth"
+								:cur-val="capitalLocalMonth"
 								@click="monthWindow = $event; yearWindow  = false"
 								@arrow-left="correlateMonths(true, '-')"
 								@arrow-right="correlateMonths(true, '+')"
@@ -87,7 +87,7 @@
 						>
 							<option-select 
 								@click="nextMonthWindow = $event"
-								:cur-val="nextLocalMonth"
+								:cur-val="capitalNextMonth"
 								@arrow-left="correlateMonths(false, '-')"
 								@arrow-right="correlateMonths(false, '+')"
 							/>
@@ -154,6 +154,7 @@ import {
 	isBetween,
 	formatDate,
 	isValidDate,
+	capitalize
 } from '../config/dates-helpers.js';
 
 export default {
@@ -624,7 +625,11 @@ export default {
 		generateLocaleMonths() {
 			const res = [];
 			for (let i = 0; i < 12; i++)
-				res.push(dayjs().month(i).format('MMMM'))
+				res.push(
+					capitalize(
+						dayjs().month(i).format('MMMM')
+					)
+				)
 			return res;
 		},
 		generateYears() {
@@ -658,6 +663,12 @@ export default {
 				return this.localMonth;
 			else if (this.yearWindow)
 				return this.localYear;
+		},
+		capitalLocalMonth() {
+			return capitalize(this.localMonth);
+		},
+		capitalNextMonth() {
+			return capitalize(this.nextLocalMonth);
 		}
 	}
 }

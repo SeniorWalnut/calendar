@@ -70,6 +70,10 @@ const parseDate = (str, format) => {
 	return null;
 }
 
+const capitalize = (str) => {
+	return str[0].toUpperCase() + str.slice(1, );
+}
+
 const formatDate = (date, format) => {
 	return dayjs(date).format(format);
 }
@@ -82,5 +86,6 @@ export {
 	isBetween,
 	parseDate,
 	formatDate,
-	isValidDate
+	isValidDate,
+	capitalize
 };
