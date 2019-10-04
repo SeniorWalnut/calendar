@@ -159,7 +159,6 @@ export default {
 		},
 		handleClose() {
 			if (this.openCalendar) {
-				console.log('here')
 				if (this.currentInputDate.length > 5 && this.currentInputDate.length < 10) {
 					this.currentInputDate = `${this.currentInputDate.slice(0, 5)}.${new Date().getFullYear()}`;
 					this.handleCurrentInputDate();

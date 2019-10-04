@@ -19,99 +19,120 @@
 					</div>
 			</div>
 			<div class="calendar-main">
-				<div class="calendar-main__top">
-					<div class="calendar__selects">
-						<option-select 
-							:cur-val="localMonth"
-							@click="monthWindow = $event; yearWindow  = false"
-						/>
-						<option-select 
-							:cur-val="localYear"
-							@click="yearWindow = $event; monthWindow = false"
-						/>
-					</div>
-					<div 
-						class="calendar__selects"
-						v-if="isDouble"
-						:class="{'doubled-right': isDouble}"
-					>
-						<option-select 
-							@click="nextMonthWindow = $event"
-							:cur-val="nextLocalMonth"
-						/>
-						<option-select 
-							@click="nextYearWindow = $event"
-							:cur-val="nextMonthYear"
-						/>
-					</div>
 				<div class="calendar-main__calendars">
 					<div
 						class="calendar calendar-left"
-						v-if="!checkSetWindow"
 					>
-						<div class="calendar-date__day-names">
-							<div v-for="name in dayNames">
-								{{ name }}
-							</div>
+						<div class="calendar__selects">
+							<option-select 
+								:cur-val="localMonth"
+								@click="monthWindow = $event; yearWindow  = false"
+								@arrow-left="correlateMonths(true, '-')"
+								@arrow-right="correlateMonths(true, '+')"
+							/>
+							<option-select 
+								:cur-val="localYear"
+								@click="yearWindow = $event; monthWindow = false"
+								@arrow-left="correlateYears(true, '-')"
+								@arrow-right="correlateYears(true, '+')"
+							/>
 						</div>
-						<table class="calendar-date">
-							<tr
-								class="calendar-date__week"
-								v-for="week in days.slice(0, weekCount)"
+						<template v-if="!checkSetWindow">
+							<div
+								class="calendar-date__day-names"
 							>
-								<td v-for="day in week">
-									<day-cell 
-									  :day="day"
-									  @set-day="setDay"
-									  @hovered="hoverRange"
-									/> 
-								</td>
-							</tr>
-						</table>
-					</div>
-					<div 
-						class="calendar__set-windows"
-						v-if="checkSetWindow"
-					>
-						<set-window
-							:values="currentWindow"
-							:arrows="monthWindow"
-							:cur-val="currentWindowVal"
-						/>
+								<div v-for="name in dayNames">
+									{{ name }}
+								</div>
+							</div>
+							<table 
+								class="calendar-date"
+							>
+								<tr
+									class="calendar-date__week"
+									v-for="week in days.slice(0, weekCount)"
+								>
+									<td v-for="day in week">
+										<day-cell 
+										  :day="day"
+										  @set-day="setDay"
+										  @hovered="hoverRange"
+										/> 
+									</td>
+								</tr>
+							</table>
+						</template>
+						<div 
+							class="calendar__set-windows"
+							v-if="checkSetWindow"
+						>
+							<set-window
+								:values="currentWindow"
+								:arrows="!monthWindow"
+								:cur-val="currentWindowVal"
+								@set-val="setWindowVal"
+								@arrow-left="subYears"
+								@arrow-right="addYears"
+							/>
+						</div>
 					</div>
 					<div 
 						class="calendar calendar-right"
-						v-if="isDouble && !checkSecondSetWindow"
+						v-if="isDouble"
 					>
-						<div class="calendar-date__day-names">
-							<div v-for="name in dayNames">
-								{{ name }}
-							</div>
+						<div 
+							class="calendar__selects"
+							v-if="isDouble"
+							:class="{'doubled-right': isDouble}"
+						>
+							<option-select 
+								@click="nextMonthWindow = $event"
+								:cur-val="nextLocalMonth"
+								@arrow-left="correlateMonths(false, '-')"
+								@arrow-right="correlateMonths(false, '+')"
+							/>
+							<option-select 
+								@click="nextYearWindow = $event"
+								:cur-val="nextMonthYear"
+								@arrow-left="correlateYears(false, '-')"
+								@arrow-right="correlateYears(false, '+')"
+							/>
 						</div>
-						<table class="calendar-date">
-							<tr
-								class="calendar-date__week"
-								v-for="week in days.slice(weekCount,)"
-							>
-								<td v-for="day in week">
-									<day-cell 
-									  :day="day"
-									  @set-day="setDay"
-									  @hovered="hoverRange"
-									/> 
-								</td>
-							</tr>
-						</table>
-					</div>
-					<div 
+						<template v-if="!checkSecondSetWindow">
+							<div 
+								class="calendar-date__day-names">
+								<div v-for="name in dayNames">
+									{{ name }}
+								</div>
+							</div>
+							<table class="calendar-date">
+								<tr
+									class="calendar-date__week"
+									v-for="week in days.slice(weekCount,)"
+								>
+									<td v-for="day in week">
+										<day-cell 
+										  :day="day"
+										  @set-day="setDay"
+										  @hovered="hoverRange"
+										/> 
+									</td>
+								</tr>
+							</table>
+						</template>
+						<div 
 						class="calendar__set-windows"
 						v-if="isDouble && checkSecondSetWindow"
 					>
 						<set-window
-							:values="secondWindow"
-							:arrows="nextMonthWindow"
-							:cur-val="secondWindowVal"
+							:values="nextWindow"
+							:arrows="!nextMonthWindow"
+							:cur-val="currentWindowVal"
+							@set-val="setNextWindowVal"
+							@arrow-left="subYears"
+							@arrow-right="addYears"
 						/>
+					</div>
 					</div>
 				</div>
 			</div>
@@ -154,7 +175,8 @@ export default {
 			nextMonthYear: null,
 			weekCount: 0,
 			monthWindow: false,
-			yearWindow: false,			
+			yearWindow: false,
+			nextDate: null,			
 			nextMonthWindow: false,
 			nextYearWindow: false,
 		}
@@ -198,21 +220,30 @@ export default {
 		
 		this.localMonth = formatDate(
 			this.localDate, 
-			'MMM',
+			'MMMM',
 			{ locale }
 		);
 
 		if (this.value.end)
 			this.selectedOption = "range";
 
-		this.localYear = this.localDate.getFullYear()
+		this.localYear = this.localDate.getFullYear();
 
+		const nextMonth = this.localDate.getMonth() + 1;
 		this.nextLocalMonth = formatDate(
-				new Date(new Date().setMonth(this.localDate.getMonth() + 1)), 
+				new Date(new Date().setMonth(nextMonth)), 
 				'MMMM',
 				{ locale }
 		);
-		this.nextMonthYear = formatDate(this.localDate, 'YYYY');
+
+		const year = this.localDate.getFullYear();
+		const nextYear = year + (nextMonth === 11 ? 1 : 0);
+		this.nextMonthYear = formatDate(
+				new Date(new Date().setFullYear(nextYear)), 
+				'YYYY',
+				{ locale }
+		);
+		this.nextDate = new Date(nextYear, nextMonth, 1);
 
 		this.currentDate.start = new Date(this.currentDate.start.setHours(0, 0, 0, 0));
 		if (this.currentDate.end)
@@ -231,7 +262,7 @@ export default {
 			.then(() => {
 				this.localMonth = formatDate(
 				this.localDate, 
-					'MMM',
+					'MMMM',
 					{ locale }
 				);
 
@@ -255,67 +286,137 @@ export default {
 				week.forEach(day => func(day))
 			})
 		},
-		// prevMonth() {
-		// 	let month = this.localDate.getMonth();
-		// 	let year = this.localDate.getFullYear();
-		// 	if (month === 0) {
-		// 		month = 12;
-		// 		year -= 1;
-		// 	}
+		monthCondition(month) {
+			return month === 12 
+				? 0 
+				: (month === -1 ? 11 : month);
+		},
+		yearCondition(month) {
+			return month === 12 
+				? 1
+				: (month === -1 ? -1 : 0);
+		},
+		correlateMonths(isLocal, action) {
+			if (isLocal) {
+				let month = this.getMonth(this.localDate) + (action === '+' ? 1 : -1);
+				let year = this.getYear(this.localDate);
 
-		// 	if (this.isDouble) {
-		// 		this.nextLocalMonth = this.localMonth;
-		// 		this.nextMonthYear = this.localYear;
-		// 	}
+				let localMonth = this.monthCondition(month);
+				let localYear = year + this.yearCondition(month);
+				let nextMonth = localMonth + 1;
+
+				this.setDate(localMonth, localYear); 
+				this.isDouble && this.setNextDate(
+					 this.monthCondition(nextMonth),
+					 localYear + this.yearCondition(nextMonth)
+				);
+			} else {
+				let month = this.getMonth(this.nextDate);
+				let year = this.getYear(this.nextDate);
+
+				let nextMonth = this.monthCondition(month) + (action === '+' ? 1 : -1) ;
+				let nextYear = year + this.yearCondition(month);
+
+				this.isDouble && this.setNextDate(nextMonth, nextYear);
+				this.setDate(
+					this.monthCondition(nextMonth - 1), 
+					nextYear + this.yearCondition(nextMonth - 1)
+				); 
+			}
+
+			this.monthDays();
+		},
+		correlateYears(isLocal, action) {
+			if (isLocal) {
+				const month = this.getMonth(this.localDate);
+				const nextMonth = this.getMonth(this.nextDate);
+				let year = this.getYear(this.localDate) + (action === '+' ? 1 : -1);
+				this.setDate(month, year);
+				this.isDouble && this.setNextDate(nextMonth, year + (month === 11 ? 1 : 0));
+			} else {
+				const month = this.getMonth(this.localDate);
+				const nextMonth = this.getMonth(this.nextDate);
+				let year = this.getYear(this.nextDate) + (action === '+' ? 1 : -1);
+				this.isDouble && this.setNextDate(nextMonth, year);
+				this.setDate(month, year + (month - 1 === 0 ? -1 : 0));
+			}
+			this.monthDays();
+		},
+		setDate(month, year) {
+			let date = new Date(year, month, 1, 0, 0, 0, 0);
+
+			this.localDate = date;
+			this.localMonth = (formatDate(
+				date, 
+				'MMMM', 
+				{ locale: this.locale})
+			);
+			this.localYear = this.getYear(date);
+		},
+		setNextDate(month, year) {
+			let date = new Date(year, month, 1, 0, 0, 0, 0);
+
+			this.nextDate = date;
+			this.nextLocalMonth = (formatDate(
+				date, 
+				'MMMM', 
+				{ locale: this.locale})
+			);
+			this.nextMonthYear = this.getYear(date);
+		},
+		// prevYear() {
+		// 	let { month, year } = this.getMonthAndYear();
+		// 	year--;
+		// 	this.setDate(month, year);
+		// 	this.monthDays();
+		// 	this.getYear(this.localDate);
+		// },
+		// nextYear() {
+		// 	let { month, year } = this.getMonthAndYear();
+		// 	year++;
+		// 	this.setDate(month, year);
+		// 	this.monthDays();
+		// 	this.getYear(this.localDate);
+		// },
+		prevMonth() {
+			let { month, year } = this.getMonthAndYear();
+			if (month === 0) {
+				month = 12;
+				year -= 1;
+			}
+
+			month--;
+
+			if (this.isDouble) {
+				this.nextLocalMonth = this.localMonth;
+				this.nextMonthYear = this.localYear;
+			}
 			
-		// 	let date = new Date(year, month, 1, 0, 0, 0, 0);
-		// 	date.setMonth(month - 1);
-		// 	date.setFullYear(year);
-
-		// 	this.localDate = date;
-		// 	this.localMonth = (formatDate(
-		// 		date, 
-		// 		'MMMM', 
-		// 		{ locale: this.locale})
-		// 	);
-		// 	this.localYear = this.getYear(date);
+			this.setDate(month, year);
 
 
-		// 	this.monthDays();
-		// 	this.getYear(this.localDate);
-		// },
-		// nextMonth() {
-		// 	let month = this.localDate.getMonth();
-		// 	let year = this.localDate.getFullYear();
-		// 	if (month === 11) {
-		// 		month = -1
-		// 		year += 1;
-		// 	}
+			this.monthDays();
+			this.getYear(this.localDate);
+		},
+		nextMonth() {
+			let { month, year } = this.getMonthAndYear();
+			if (month === 11) {
+				month = -1;
+				year += 1;
+			}
 
-		// 	let date = new Date(year, month, 1, 0, 0, 0, 0);
-		// 	date.setMonth(month + 1); 
-		// 	date.setFullYear(year);
+			month++;
 
-		// 	this.localDate = date;
-		// 	this.localMonth = (formatDate(
-		// 		this.localDate,
-		// 		'MMMM', 
-		// 		{ locale: this.locale})
-		// 	);
-		// 	this.localYear = this.getYear(date);
+			this.setDate(month, year);
 
-		// 	if (this.isDouble) {
-		// 		this.nextLocalMonth = formatDate(new Date(new Date().setMonth(date.getMonth() + 1)), 'MMMM');
-		// 		this.nextMonthYear = formatDate(
-		// 			date.getMonth() === 11 ? 
-		// 			new Date(new Date().setFullYear(date.getFullYear() + 1)) :
-		// 			date
-		// 		, 'YYYY');
-		// 	}
+			if (this.isDouble) {
+				this.nextLocalMonth = formatDate(new Date(new Date().setMonth(month + 1)), 'MMMM');
+				this.nextMonthYear = formatDate(new Date(new Date().setFullYear(year + (month === 11 ? 1 : 0))),'YYYY');
+			}
 
-		// 	this.monthDays();
-		// 	this.getYear(this.localDate);
-		// },
+			this.monthDays();
+			this.getYear(this.localDate);
+		},
 		monthDays() {
 			this.days = [];
 			let weekStart = this.locale !== 'en';
@@ -335,7 +436,7 @@ export default {
 			this.weekCount = resCurMonth.length / 7;
 
 			if (this.isDouble) {
-				let firstDayNext = startOfMonth(new Date(dayjs(firstDay).add(1, 'month')));
+				let firstDayNext = startOfMonth(this.nextDate);
 				let resNextMonth = this.mapDates([
 					...getDates(
 						startOfWeek(
@@ -380,6 +481,9 @@ export default {
 
 			return before && before.getTime() > date.getTime()
 				|| after  && after.getTime() < date.getTime()
+		},
+		getMonth(date) {
+			return date.getMonth();
 		},
 		getYear(date) {
 			return date.getFullYear();
@@ -471,6 +575,44 @@ export default {
 				this.$emit('input', this.currentDate);
 				this.monthDays();
 			}
+		},
+		setWindowVal(val) {
+			if (this.monthWindow)
+				this.localMonth = val;
+			else this.localYear = val;
+			const month = this.generateLocaleMonths
+				.findIndex(m => m === this.localMonth);
+			this.setDate(month, this.localYear);
+			this.isDouble && this.setNextDate(
+				this.monthCondition(month + 1),
+				this.localYear + this.yearCondition(month + 1)
+			);
+			this.monthDays();
+			this.monthWindow = false;
+			this.yearWindow = false;
+		},
+		setNextWindowVal(val) {
+			if (this.nextMonthWindow)
+				this.nextLocalMonth = val;
+			else this.nextMonthYear = val;
+			const month = this.generateLocaleMonths
+				.findIndex(m => m === this.nextLocalMonth);
+			this.setNextDate(month, this.nextMonthYear);
+			this.setDate(
+				this.monthCondition(month - 1),
+				this.nextMonthYear + this.yearCondition(month - 1)
+			);
+			this.monthDays();
+			this.nextMonthWindow = false;
+			this.nextYearWindow = false;
+		},
+		addYears() {
+			this.localYear += 12;
+			this.monthDays();
+		},
+		subYears() {
+			this.localYear -= 12;
+			this.monthDays();
 		}
 	},
 	computed: {
@@ -482,7 +624,7 @@ export default {
 		generateLocaleMonths() {
 			const res = [];
 			for (let i = 0; i < 12; i++)
-				res.push(dayjs().month(i).format('MMM'))
+				res.push(dayjs().month(i).format('MMMM'))
 			return res;
 		},
 		generateYears() {
@@ -505,17 +647,17 @@ export default {
 			else if (this.yearWindow)
 				return this.generateYears;
 		},
+		nextWindow() {
+			if (this.nextMonthWindow)
+				return this.generateLocaleMonths;
+			else if (this.nextYearWindow)
+				return this.generateYears;
+		},
 		currentWindowVal() {
 			if (this.monthWindow)
 				return this.localMonth;
 			else if (this.yearWindow)
 				return this.localYear;
-		},
-		secondWindow() {
-			return;
-		},
-		secondWindowVal() {
-			return;
 		}
 	}
 }
@@ -530,6 +672,9 @@ $shadow: 0px 0px 3px 2px #e3e4e9;
 
 .calendar {
 	background-color: $calendarBack;
+	&__set-windows {
+		margin-top: 25px;
+	}
 	&-wrapper {
 		width: max-content;
 		padding: 25px 30px;
@@ -582,7 +727,6 @@ $shadow: 0px 0px 3px 2px #e3e4e9;
 		}
 
 		&__calendars {
-			margin-top: 20px;
 			display: flex;
 		}
 
@@ -617,6 +761,7 @@ $shadow: 0px 0px 3px 2px #e3e4e9;
 			font-size: 12px;
 			font-weight: 500;
 			margin-bottom: 20px;
+	    margin-top: 25px;
 		}
 	}
 	
