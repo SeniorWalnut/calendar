@@ -219,11 +219,11 @@ export default {
 			this.currentDate.start = after;
 		}
 		
-		this.localMonth = formatDate(
+		this.localMonth = capitalize(formatDate(
 			this.localDate, 
 			'MMMM',
 			{ locale }
-		);
+		));
 
 		if (this.value.end)
 			this.selectedOption = "range";
@@ -231,11 +231,11 @@ export default {
 		this.localYear = this.localDate.getFullYear();
 
 		const nextMonth = this.localDate.getMonth() + 1;
-		this.nextLocalMonth = formatDate(
+		this.nextLocalMonth = capitalize(formatDate(
 				new Date(new Date().setMonth(nextMonth)), 
 				'MMMM',
 				{ locale }
-		);
+		));
 
 		const year = this.localDate.getFullYear();
 		const nextYear = year + (nextMonth === 11 ? 1 : 0);
@@ -261,18 +261,18 @@ export default {
 				dayjs.locale(locale);
 			})
 			.then(() => {
-				this.localMonth = formatDate(
+				this.localMonth = capitalize(formatDate(
 				this.localDate, 
 					'MMMM',
 					{ locale }
-				);
+				));
 
 				if (this.isDouble) {
-					this.nextLocalMonth = formatDate(
+					this.nextLocalMonth = capitalize(formatDate(
 						new Date(new Date().setMonth(this.localDate.getMonth() + 1)), 
 						'MMMM',
 						{ locale }
-					);
+					));
 				}
 				this.monthDays();
 				this.handleDays((day) => {
@@ -347,7 +347,7 @@ export default {
 			let date = new Date(year, month, 1, 0, 0, 0, 0);
 
 			this.localDate = date;
-			this.localMonth = (formatDate(
+			this.localMonth = capitalize(formatDate(
 				date, 
 				'MMMM', 
 				{ locale: this.locale})
@@ -358,65 +358,12 @@ export default {
 			let date = new Date(year, month, 1, 0, 0, 0, 0);
 
 			this.nextDate = date;
-			this.nextLocalMonth = (formatDate(
+			this.nextLocalMonth = capitalize(formatDate(
 				date, 
 				'MMMM', 
 				{ locale: this.locale})
 			);
 			this.nextMonthYear = this.getYear(date);
-		},
-		// prevYear() {
-		// 	let { month, year } = this.getMonthAndYear();
-		// 	year--;
-		// 	this.setDate(month, year);
-		// 	this.monthDays();
-		// 	this.getYear(this.localDate);
-		// },
-		// nextYear() {
-		// 	let { month, year } = this.getMonthAndYear();
-		// 	year++;
-		// 	this.setDate(month, year);
-		// 	this.monthDays();
-		// 	this.getYear(this.localDate);
-		// },
-		prevMonth() {
-			let { month, year } = this.getMonthAndYear();
-			if (month === 0) {
-				month = 12;
-				year -= 1;
-			}
-
-			month--;
-
-			if (this.isDouble) {
-				this.nextLocalMonth = this.localMonth;
-				this.nextMonthYear = this.localYear;
-			}
-			
-			this.setDate(month, year);
-
-
-			this.monthDays();
-			this.getYear(this.localDate);
-		},
-		nextMonth() {
-			let { month, year } = this.getMonthAndYear();
-			if (month === 11) {
-				month = -1;
-				year += 1;
-			}
-
-			month++;
-
-			this.setDate(month, year);
-
-			if (this.isDouble) {
-				this.nextLocalMonth = formatDate(new Date(new Date().setMonth(month + 1)), 'MMMM');
-				this.nextMonthYear = formatDate(new Date(new Date().setFullYear(year + (month === 11 ? 1 : 0))),'YYYY');
-			}
-
-			this.monthDays();
-			this.getYear(this.localDate);
 		},
 		monthDays() {
 			this.days = [];
@@ -580,10 +527,11 @@ export default {
 		setWindowVal(val) {
 			if (this.monthWindow)
 				this.localMonth = val;
-			else this.localYear = val;
+			else if (this.yearWindow)
+				this.localYear = val;
 			const month = this.generateLocaleMonths
 				.findIndex(m => m === this.localMonth);
-			this.setDate(month, this.localYear);
+			this.setDate(this.monthCondition(month), this.localYear);
 			this.isDouble && this.setNextDate(
 				this.monthCondition(month + 1),
 				this.localYear + this.yearCondition(month + 1)
@@ -598,7 +546,8 @@ export default {
 			else this.nextMonthYear = val;
 			const month = this.generateLocaleMonths
 				.findIndex(m => m === this.nextLocalMonth);
-			this.setNextDate(month, this.nextMonthYear);
+			this.setNextDate(this.monthCondition(month), this.nextMonthYear);
+			console.log(month - 1, this.nextMonthYear + this.yearCondition(month - 1), this.nextMonthYear)
 			this.setDate(
 				this.monthCondition(month - 1),
 				this.nextMonthYear + this.yearCondition(month - 1)
@@ -627,7 +576,7 @@ export default {
 			for (let i = 0; i < 12; i++)
 				res.push(
 					capitalize(
-						dayjs().month(i).format('MMMM')
+						dayjs().locale(this.locale).month(i).format('MMMM')
 					)
 				)
 			return res;
