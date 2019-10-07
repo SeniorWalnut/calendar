@@ -1,8 +1,8 @@
 <template>
 	<div 
 		class="set-cell"
-		@click="$emit('click', value)"
-		:class="{ active: isActive }"
+		@click="!isDisabled && $emit('click', value)"
+		:class="[{ active: isActive }, {disabled: isDisabled}]"
 	>{{ value }}</div>
 </template>
 <script>
@@ -13,6 +13,10 @@ export default {
 			default: ''
 		},
 		isActive: {
+			type: Boolean,
+			default: false
+		},
+		isDisabled: {
 			type: Boolean,
 			default: false
 		}
@@ -31,6 +35,10 @@ $buttonsColor: #ff8584;
 		background-color: $buttonsColor;
 		font-weight: bold;
 		color: white;
+	}
+	&.disabled {
+		cursor: default;
+		opacity: .25;
 	}
 }
 </style>

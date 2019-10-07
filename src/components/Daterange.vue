@@ -37,8 +37,8 @@
 			v-model="currentDate"
 			@input="handleInput"
 			:is-double="isDouble"
-			:disable-after="disableAfter ? handleDateString(disableAfter) : null"
-			:disable-before="disableBefore ? handleDateString(disableBefore) : null"
+			:disable-after="handleDateString(disableAfter)"
+			:disable-before="handleDateString(disableBefore)"
 			:locale="locale"
 			@set-option="selectedOption = $event; $emit('option', $event)"
 			:option="option"
@@ -138,7 +138,7 @@ export default {
 			}		
 		},
 		handleDateString(dis) {
-			if (dis.length)
+			if (dis && dis.length)
 				return new Date(parseDate(dis, this.format));
 			else if (isValidDate(dis))
 				return new Date(dis.setHours(0, 0, 0, 0));

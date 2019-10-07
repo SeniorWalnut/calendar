@@ -67,6 +67,7 @@
 							v-if="checkSetWindow"
 						>
 							<set-window
+								:disabled="yearsToDisable"
 								:values="currentWindow"
 								:arrows="!monthWindow"
 								:cur-val="currentWindowVal"
@@ -125,6 +126,7 @@
 						v-if="isDouble && checkSecondSetWindow"
 					>
 						<set-window
+							:disabled="yearsToDisable"
 							:values="nextWindow"
 							:arrows="!nextMonthWindow"
 							:cur-val="currentWindowVal"
@@ -214,14 +216,14 @@ export default {
 			this.localDate = before;
 			this.currentDate.start = before;
 		}
-		else if (after && new Date(after.setHours(0, 0, 0, 0)).getTime() < this.currentDate.start.getTime()) {
+		if (after && new Date(after.setHours(0, 0, 0, 0)).getTime() < this.currentDate.start.getTime()) {
 			this.localDate = after;
 			this.currentDate.start = after;
 		}
 		
 		this.localMonth = capitalize(formatDate(
 			this.localDate, 
-			'MMMM',
+			'MMM',
 			{ locale }
 		));
 
@@ -233,7 +235,7 @@ export default {
 		const nextMonth = this.localDate.getMonth() + 1;
 		this.nextLocalMonth = capitalize(formatDate(
 				new Date(new Date().setMonth(nextMonth)), 
-				'MMMM',
+				'MMM',
 				{ locale }
 		));
 
@@ -263,14 +265,14 @@ export default {
 			.then(() => {
 				this.localMonth = capitalize(formatDate(
 				this.localDate, 
-					'MMMM',
+					'MMM',
 					{ locale }
 				));
 
 				if (this.isDouble) {
 					this.nextLocalMonth = capitalize(formatDate(
 						new Date(new Date().setMonth(this.localDate.getMonth() + 1)), 
-						'MMMM',
+						'MMM',
 						{ locale }
 					));
 				}
@@ -349,7 +351,7 @@ export default {
 			this.localDate = date;
 			this.localMonth = capitalize(formatDate(
 				date, 
-				'MMMM', 
+				'MMM', 
 				{ locale: this.locale})
 			);
 			this.localYear = this.getYear(date);
@@ -360,7 +362,7 @@ export default {
 			this.nextDate = date;
 			this.nextLocalMonth = capitalize(formatDate(
 				date, 
-				'MMMM', 
+				'MMM', 
 				{ locale: this.locale})
 			);
 			this.nextMonthYear = this.getYear(date);
@@ -582,7 +584,7 @@ export default {
 			for (let i = 0; i < 12; i++)
 				res.push(
 					capitalize(
-						dayjs().locale(this.locale).month(i).format('MMMM')
+						dayjs().locale(this.locale).month(i).format('MMM')
 					)
 				)
 			return res;
@@ -624,6 +626,24 @@ export default {
 		},
 		capitalNextMonth() {
 			return capitalize(this.nextLocalMonth);
+		},
+		yearsToDisable(type) {
+			const res = [];
+			const before = this.disableBefore; 
+			const after = this.disableAfter;
+
+			if (before) {
+				const year = this.getYear(before);
+				for (let i = 0; i < this.generateYears.length; i++)
+					if (this.generateYears[i] < year) res.push(this.generateYears[i]);
+			} 
+			if (after) {
+				const year = this.getYear(after);
+				for (let i = 0; i < this.generateYears.length; i++)
+					if (this.generateYears[i] > year) res.push(this.generateYears[i]);
+			}
+
+			return [...new Set(res)];
 		}
 	}
 }

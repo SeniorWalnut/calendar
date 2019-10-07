@@ -10,9 +10,10 @@
 				<tr v-for="vals in divValues">
 					<td v-for="val in vals">
 						<set-cell 
-							:value="val"
+							:value="val.value"
 							@click="setVal"
-							:is-active="activeVal === val"
+							:is-active="activeVal === val.value"
+							:is-disabled="val.disabled"
 						/>
 					</td>
 				</tr>
@@ -28,6 +29,7 @@
 <script>
 import SetCell from "./SetCell";
 import Arrow from "./Arrow";
+import { isBetween } from '../config/dates-helpers';
 export default {
 	components: {
 		SetCell,
@@ -45,6 +47,10 @@ export default {
 		curVal: {
 			type: [Number, String],
 			default: ''
+		},
+		disabled: {
+			type: Array,
+			default: () => []
 		}
 	},
 	data() {
@@ -61,10 +67,18 @@ export default {
 		this.activeVal = this.curVal;
 	},
 	computed: {
+		handleValues() {
+			return this.values.map(v => {
+				return {
+					value: v,
+					disabled: this.disabled.includes(v)
+				}
+			});
+		},
 		divValues() {
 			const res = [];
-			for (let i = 0; i < this.values.length; i+=3)
-				res.push(this.values.slice(i, i + 3));
+			for (let i = 0; i < this.handleValues.length; i+=3)
+				res.push(this.handleValues.slice(i, i + 3));
 			return res;
 		}
 	},
