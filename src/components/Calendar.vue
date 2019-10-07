@@ -71,8 +71,8 @@
 								:arrows="!monthWindow"
 								:cur-val="currentWindowVal"
 								@set-val="setWindowVal"
-								@arrow-left="subYears"
-								@arrow-right="addYears"
+								@arrow-left="changeYears(-1)"
+								@arrow-right="changeYears(1)"
 							/>
 						</div>
 					</div>
@@ -129,8 +129,8 @@
 							:arrows="!nextMonthWindow"
 							:cur-val="currentWindowVal"
 							@set-val="setNextWindowVal"
-							@arrow-left="subYears"
-							@arrow-right="addYears"
+							@arrow-left="changeYears(-1)"
+							@arrow-right="changeYears(1)"
 						/>
 					</div>
 					</div>
@@ -239,7 +239,7 @@ export default {
 
 		const year = this.localDate.getFullYear();
 		const nextYear = year + (nextMonth === 11 ? 1 : 0);
-		this.nextMonthYear = formatDate(
+		this.nextMonthYear = +formatDate(
 				new Date(new Date().setFullYear(nextYear)), 
 				'YYYY',
 				{ locale }
@@ -547,7 +547,6 @@ export default {
 			const month = this.generateLocaleMonths
 				.findIndex(m => m === this.nextLocalMonth);
 			this.setNextDate(this.monthCondition(month), this.nextMonthYear);
-			console.log(month - 1, this.nextMonthYear + this.yearCondition(month - 1), this.nextMonthYear)
 			this.setDate(
 				this.monthCondition(month - 1),
 				this.nextMonthYear + this.yearCondition(month - 1)
@@ -556,12 +555,19 @@ export default {
 			this.nextMonthWindow = false;
 			this.nextYearWindow = false;
 		},
-		addYears() {
-			this.localYear += 12;
-			this.monthDays();
-		},
-		subYears() {
-			this.localYear -= 12;
+		changeYears(sign) {
+			this.localYear += 12 * sign;
+			this.nextMonthYear += 12 * sign;
+			const month = this.getMonth(this.localDate);
+			const nextMonth = this.getMonth(this.nextDate);
+			this.setDate(
+				this.monthCondition(month),
+				this.localYear + this.yearCondition(month)
+			);
+			this.setNextDate(
+				this.monthCondition(nextMonth),
+				this.nextMonthYear + this.yearCondition(nextMonth)
+			);
 			this.monthDays();
 		}
 	},
