@@ -655,9 +655,11 @@ $month: #2c2c2c;
 $arrow: #7bb6db;
 $buttonsColor: #ff8584;
 $shadow: 0px 0px 3px 2px #e3e4e9;
+$optimalWidth: 230px;
 
 .calendar {
 	background-color: $calendarBack;
+	width: $optimalWidth;
 	&__set-windows {
 		margin-top: 25px;
 	}
@@ -736,6 +738,7 @@ $shadow: 0px 0px 3px 2px #e3e4e9;
 	}
 	&-date {
 		border-collapse: collapse;
+		width: 100%;
 		& td { 
 			vertical-align: middle;
 			text-align: center;
