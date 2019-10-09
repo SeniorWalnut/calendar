@@ -87,13 +87,13 @@
 							:class="{'doubled-right': isDouble}"
 						>
 							<option-select 
-								@click="nextMonthWindow = $event"
+								@click="nextMonthWindow = $event; nextYearWindow = false"
 								:cur-val="capitalNextMonth"
 								@arrow-left="correlateMonths(false, '-')"
 								@arrow-right="correlateMonths(false, '+')"
 							/>
 							<option-select 
-								@click="nextYearWindow = $event"
+								@click="nextYearWindow = $event; nextMonthWindow = false"
 								:cur-val="nextMonthYear"
 								@arrow-left="correlateYears(false, '-')"
 								@arrow-right="correlateYears(false, '+')"
