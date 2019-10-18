@@ -216,6 +216,7 @@ export default {
 			let check = e.keyCode > 95 && e.keyCode < 106 
 			|| e.keyCode > 47 && e.keyCode < 58
 		  || e.keyCode === 8 
+		  || e.keyCode === 9
 		  || e.keyCode === 37
 		  || e.keyCode === 39;
 			if (!check) e.preventDefault();
