@@ -420,7 +420,7 @@ export default {
 				return {
 					isHovered: checkHover,
 					isActive: checkActive,
-					isDisabled: checkDisabled || fDay.getMonth() !== item.getMonth(),
+					isDisabled: checkDisabled,
 					value: item
 				};
 			})
