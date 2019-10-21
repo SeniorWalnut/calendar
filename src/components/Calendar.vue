@@ -232,21 +232,26 @@ export default {
 
 		this.localYear = this.localDate.getFullYear();
 
-		const nextMonth = this.localDate.getMonth() + 1;
+		let nextMonth = this.localDate.getMonth() + 1;
 		this.nextLocalMonth = capitalize(formatDate(
-				new Date(new Date().setMonth(nextMonth)), 
-				'MMM',
-				{ locale }
+			new Date(new Date().setMonth(nextMonth)), 
+			'MMM',
+			{ locale }
 		));
 
 		const year = this.localDate.getFullYear();
-		const nextYear = year + (nextMonth === 12 ? 1 : 0);
+		let nextYear = year;
+		if (nextMonth === 12) {
+			nextYear++;
+			nextMonth = 0;
+		}
 		this.nextMonthYear = +formatDate(
-				new Date(new Date().setFullYear(nextYear)), 
-				'YYYY',
-				{ locale }
+			new Date(new Date().setFullYear(nextYear)), 
+			'YYYY',
+			{ locale }
 		);
-		this.nextDate = new Date(nextYear, nextMonth, 1);
+		console.log(nextYear, nextMonth);
+		this.nextDate = new Date(nextYear, nextMonth);
 
 		this.currentDate.start = new Date(this.currentDate.start.setHours(0, 0, 0, 0));
 		if (this.currentDate.end)
@@ -420,7 +425,7 @@ export default {
 				return {
 					isHovered: checkHover,
 					isActive: checkActive,
-					isDisabled: checkDisabled,
+					isDisabled: checkDisabled || fDay.getMonth() !== item.getMonth(),
 					value: item
 				};
 			})
@@ -430,7 +435,7 @@ export default {
 			let after  = this.disableAfter;
 
 			return before && before.getTime() > date.getTime()
-				|| after  && after.getTime() < date.getTime()
+				|| after  && after.getTime() < date.getTime();
 		},
 		getMonth(date) {
 			return date.getMonth();
