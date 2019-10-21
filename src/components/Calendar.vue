@@ -240,7 +240,7 @@ export default {
 		));
 
 		const year = this.localDate.getFullYear();
-		const nextYear = year + (nextMonth === 11 ? 1 : 0);
+		const nextYear = year + (nextMonth === 12 ? 1 : 0);
 		this.nextMonthYear = +formatDate(
 				new Date(new Date().setFullYear(nextYear)), 
 				'YYYY',
