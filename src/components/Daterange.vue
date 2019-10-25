@@ -131,6 +131,7 @@ export default {
 					this.currentInputDate = `${formatDate(start, this.format)}${end ? ' - ' + formatDate(end, this.format) : ''}`;
 				} else {
 			 		this.currentDate.start = new Date(new Date().setHours(0, 0, 0, 0));
+			 		this.currentInputDate = '';
 				}
 			} else {
 			 	this.currentDate.start = null;
