@@ -1,17 +1,17 @@
 <template>
 		<div class="calendar-wrapper">
 			<div class="calendar__top calendar-top">
-				<div 
+				<div
 					class="calendar-buttons"
 					v-if="topButtons"
 				>
-					<div 
+					<div
 							class="calendar-buttons__one"
 							@click="chooseOption('one')"
 							:class="{active: selectedOption === 'one'}"
 						> {{ buttonNames[0] }}
 					</div>
-					<div 
+					<div
 							class="calendar-buttons__range"
 							@click="chooseOption('range')"
 							:class="{active: selectedOption === 'range'}"
@@ -24,13 +24,13 @@
 						class="calendar calendar-left"
 					>
 						<div class="calendar__selects">
-							<option-select 
+							<option-select
 								:cur-val="capitalLocalMonth"
 								@click="monthWindow = $event; yearWindow  = false"
 								@arrow-left="correlateMonths(true, '-')"
 								@arrow-right="correlateMonths(true, '+')"
 							/>
-							<option-select 
+							<option-select
 								:cur-val="localYear"
 								@click="yearWindow = $event; monthWindow = false"
 								@arrow-left="correlateYears(true, '-')"
@@ -45,7 +45,7 @@
 									{{ name }}
 								</div>
 							</div>
-							<table 
+							<table
 								class="calendar-date"
 							>
 								<tr
@@ -53,16 +53,16 @@
 									v-for="week in days.slice(0, weekCount)"
 								>
 									<td v-for="day in week">
-										<day-cell 
+										<day-cell
 										  :day="day"
 										  @set-day="setDay"
 										  @hovered="hoverRange"
-										/> 
+										/>
 									</td>
 								</tr>
 							</table>
 						</template>
-						<div 
+						<div
 							class="calendar__set-windows"
 							v-if="checkSetWindow"
 						>
@@ -77,22 +77,22 @@
 							/>
 						</div>
 					</div>
-					<div 
+					<div
 						class="calendar calendar-right"
 						v-if="isDouble"
 					>
-						<div 
+						<div
 							class="calendar__selects"
 							v-if="isDouble"
 							:class="{'doubled-right': isDouble}"
 						>
-							<option-select 
+							<option-select
 								@click="nextMonthWindow = $event; nextYearWindow = false"
 								:cur-val="capitalNextMonth"
 								@arrow-left="correlateMonths(false, '-')"
 								@arrow-right="correlateMonths(false, '+')"
 							/>
-							<option-select 
+							<option-select
 								@click="nextYearWindow = $event; nextMonthWindow = false"
 								:cur-val="nextMonthYear"
 								@arrow-left="correlateYears(false, '-')"
@@ -100,7 +100,7 @@
 							/>
 						</div>
 						<template v-if="!checkSecondSetWindow">
-							<div 
+							<div
 								class="calendar-date__day-names">
 								<div v-for="name in dayNames">
 									{{ name }}
@@ -112,16 +112,16 @@
 									v-for="week in days.slice(weekCount,)"
 								>
 									<td v-for="day in week">
-										<day-cell 
+										<day-cell
 										  :day="day"
 										  @set-day="setDay"
 										  @hovered="hoverRange"
-										/> 
+										/>
 									</td>
 								</tr>
 							</table>
 						</template>
-						<div 
+						<div
 						class="calendar__set-windows"
 						v-if="isDouble && checkSecondSetWindow"
 					>
@@ -148,7 +148,7 @@ import OptionSelect from "./OptionSelect";
 import SetWindow from "./SetWindow";
 import { getDates } from '../config/array-of-dates.js';
 import dayjs from 'dayjs';
-import { 
+import {
 	startOfWeek,
 	endOfWeek,
 	lastDayOfMonth,
@@ -160,7 +160,7 @@ import {
 } from '../config/dates-helpers.js';
 
 export default {
-	components: { 
+	components: {
 		DayCell,
 		SetWindow,
 		OptionSelect
@@ -179,7 +179,7 @@ export default {
 			weekCount: 0,
 			monthWindow: false,
 			yearWindow: false,
-			nextDate: null,			
+			nextDate: null,
 			nextMonthWindow: false,
 			nextYearWindow: false,
 		}
@@ -220,9 +220,9 @@ export default {
 			this.localDate = after;
 			this.currentDate.start = after;
 		}
-		
+
 		this.localMonth = capitalize(formatDate(
-			this.localDate, 
+			this.localDate,
 			'MMM',
 			{ locale }
 		));
@@ -234,7 +234,7 @@ export default {
 
 		let nextMonth = this.localDate.getMonth() + 1;
 		this.nextLocalMonth = capitalize(formatDate(
-			new Date(new Date().setMonth(nextMonth)), 
+			new Date(new Date().setMonth(nextMonth)),
 			'MMM',
 			{ locale }
 		));
@@ -246,7 +246,7 @@ export default {
 			nextMonth = 0;
 		}
 		this.nextMonthYear = +formatDate(
-			new Date(new Date().setFullYear(nextYear)), 
+			new Date(new Date().setFullYear(nextYear)),
 			'YYYY',
 			{ locale }
 		);
@@ -269,14 +269,14 @@ export default {
 			})
 			.then(() => {
 				this.localMonth = capitalize(formatDate(
-				this.localDate, 
+				this.localDate,
 					'MMM',
 					{ locale }
 				));
 
 				if (this.isDouble) {
 					this.nextLocalMonth = capitalize(formatDate(
-						new Date(new Date().setMonth(this.localDate.getMonth() + 1)), 
+						new Date(new Date().setMonth(this.localDate.getMonth() + 1)),
 						'MMM',
 						{ locale }
 					));
@@ -295,12 +295,12 @@ export default {
 			})
 		},
 		monthCondition(month) {
-			return month === 12 
-				? 0 
+			return month === 12
+				? 0
 				: (month === -1 ? 11 : month);
 		},
 		yearCondition(month) {
-			return month === 12 
+			return month === 12
 				? 1
 				: (month === -1 ? -1 : 0);
 		},
@@ -313,7 +313,7 @@ export default {
 				let localYear = year + this.yearCondition(month);
 				let nextMonth = localMonth + 1;
 
-				this.setDate(localMonth, localYear); 
+				this.setDate(localMonth, localYear);
 				this.isDouble && this.setNextDate(
 					 this.monthCondition(nextMonth),
 					 localYear + this.yearCondition(nextMonth)
@@ -327,9 +327,9 @@ export default {
 
 				this.isDouble && this.setNextDate(nextMonth, nextYear);
 				this.setDate(
-					this.monthCondition(nextMonth - 1), 
+					this.monthCondition(nextMonth - 1),
 					nextYear + this.yearCondition(nextMonth - 1)
-				); 
+				);
 			}
 
 			this.monthDays();
@@ -355,8 +355,8 @@ export default {
 
 			this.localDate = date;
 			this.localMonth = capitalize(formatDate(
-				date, 
-				'MMM', 
+				date,
+				'MMM',
 				{ locale: this.locale})
 			);
 			this.localYear = this.getYear(date);
@@ -366,8 +366,8 @@ export default {
 
 			this.nextDate = date;
 			this.nextLocalMonth = capitalize(formatDate(
-				date, 
-				'MMM', 
+				date,
+				'MMM',
 				{ locale: this.locale})
 			);
 			this.nextMonthYear = this.getYear(date);
@@ -458,7 +458,7 @@ export default {
 		setRange(date) {
 			let { start, end } = this.currentDate;
 
-			if (start && end 
+			if (start && end
 				&& date.getTime() !== start.getTime()
 				&& date.getTime() !== end.getTime()) {
 				this.hovering = true;
@@ -518,13 +518,13 @@ export default {
 				this.selectedOption = option;
 				this.$emit('set-option', option);
 				if (option === 'range') this.hovering = true;
-				this.handleDays((day) => { 
+				this.handleDays((day) => {
 					day.isActive = false;
-					day.isHovered = false; 
+					day.isHovered = false;
 				});
 				this.currentDate = {
 					start: null,
-					end: null 
+					end: null
 				}
 
 				this.$emit('input', this.currentDate);
@@ -580,9 +580,22 @@ export default {
 	},
 	computed: {
 		dayNames() {
-			if (this.locale === 'en')
-				return  ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-			return ['M','T', 'W', 'T', 'F', 'S', 'S'];
+		  if (this.locale === 'ru') {
+        return ['Пн','Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+			}
+
+		  const res = [];
+		  for (let i = 0; i < 7; i++) {
+		    res.push(
+		      capitalize(
+		        dayjs().locale(this.locale).day(i).format('dd')
+					)
+				)
+			}
+			// if (this.locale === 'en')
+			// 	return  ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+			// return ['M','T', 'W', 'T', 'F', 'S', 'S'];
+			return res;
 		},
 		generateLocaleMonths() {
 			const res = [];
@@ -634,14 +647,14 @@ export default {
 		},
 		yearsToDisable(type) {
 			const res = [];
-			const before = this.disableBefore; 
+			const before = this.disableBefore;
 			const after = this.disableAfter;
 
 			if (before) {
 				const year = this.getYear(before);
 				for (let i = 0; i < this.generateYears.length; i++)
 					if (this.generateYears[i] < year) res.push(this.generateYears[i]);
-			} 
+			}
 			if (after) {
 				const year = this.getYear(after);
 				for (let i = 0; i < this.generateYears.length; i++)
@@ -671,7 +684,7 @@ $optimalWidth: 230px;
 	&-wrapper {
 		width: max-content;
 		padding: 25px 30px;
-    box-shadow: $shadow; 
+    box-shadow: $shadow;
     position: relative;
 	}
 	&-buttons {
@@ -744,7 +757,7 @@ $optimalWidth: 230px;
 	&-date {
 		border-collapse: collapse;
 		width: 100%;
-		& td { 
+		& td {
 			vertical-align: middle;
 			text-align: center;
 		}
@@ -758,7 +771,7 @@ $optimalWidth: 230px;
 	    margin-top: 25px;
 		}
 	}
-	
+
 }
 
 </style>
