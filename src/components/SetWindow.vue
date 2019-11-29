@@ -1,7 +1,7 @@
 <template>
 	<div class="set-window">
 		<div class="set-window__wrap">
-			<arrow 
+			<arrow
 				v-show="arrows"
 				arrow-type="left"
 				@arrow-click="$emit('arrow-left')"
@@ -9,7 +9,7 @@
 			<table class="set-window__cells">
 				<tr v-for="vals in divValues">
 					<td v-for="val in vals">
-						<set-cell 
+						<set-cell
 							:value="val.value"
 							@click="setVal"
 							:is-active="activeVal === val.value"
@@ -35,7 +35,7 @@ export default {
 		SetCell,
 		Arrow
 	},
-	props: { 
+	props: {
 		values: {
 			type: Array,
 			default: () => []
@@ -60,7 +60,7 @@ export default {
 	},
 	watch: {
 		curVal(val) {
-			this.activeVal = val;	
+			this.activeVal = val;
 		}
 	},
 	created() {
@@ -98,6 +98,7 @@ export default {
 		align-items: center;
 	}
 	&__cells {
+		width: 100%;
 		& td {
 			padding: 6px;
 			text-align: center;

@@ -129,7 +129,7 @@
 							:disabled="yearsToDisable"
 							:values="nextWindow"
 							:arrows="!nextMonthWindow"
-							:cur-val="currentWindowVal"
+							:cur-val="nextWindowVal"
 							@set-val="setNextWindowVal"
 							@arrow-left="changeYears(-1)"
 							@arrow-right="changeYears(1)"
@@ -374,7 +374,7 @@ export default {
 		},
 		monthDays() {
 			this.days = [];
-			let weekStart = this.locale !== 'en';
+			let weekStart = this.locale === 'ru';
 			let firstDay = startOfMonth(this.localDate);
 			let resCurMonth = this.mapDates([
 			...getDates(
@@ -638,6 +638,12 @@ export default {
 				return this.localMonth;
 			else if (this.yearWindow)
 				return this.localYear;
+		},
+		nextWindowVal() {
+      if (this.nextWindow)
+        return this.nextLocalMonth;
+      else if (this.nextYearWindow)
+        return this.nextMonthYear;
 		},
 		capitalLocalMonth() {
 			return capitalize(this.localMonth);
