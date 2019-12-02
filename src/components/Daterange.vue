@@ -1,19 +1,19 @@
 <template>
-<div 
+<div
 	class="daterange"
 	v-on-click-outside='handleClose'
 >
-	<label 
-		class="daterange__wrap" 
+	<label
+		class="daterange__wrap"
 		for="daterange"
 	>
-		<h1 
+		<h1
 			class="daterange__title"
 			v-if="title"
 			:class="{required: required}"
 		>{{ title }}</h1>
-		<input 
-			type="text" 
+		<input
+			type="text"
 			v-bind="$attrs"
 			class="daterange__input"
 			:class="{error: error || isError}"
@@ -25,8 +25,8 @@
 			@focus="openCalendar = true;"
 			:value="currentInputDate"
 		/>
-		<div 
-			v-if="isError && errorMessage.length"
+		<div
+			v-if="error && errorMessage.length"
 			class="daterange__error"
 		>{{ errorMessage }}</div>
 	</label>
@@ -49,13 +49,13 @@
 </template>
 <script>
 import Calendar from './Calendar';
-import 
-{ 
-	formatDate, 
+import
+{
+	formatDate,
 	parseDate,
 	isBetween,
 	isValidDate
-} from '../config/dates-helpers'; 
+} from '../config/dates-helpers';
 import dayjs from 'dayjs';
 import { directive as onClickOutside } from 'vue-on-click-outside';
 
@@ -65,7 +65,7 @@ export default {
   },
   inheritAttrs: false,
 	components: { Calendar },
-	data() { 
+	data() {
 		return {
 			currentRange: {},
 			currentDate: {},
@@ -76,7 +76,7 @@ export default {
 			format: 'DD.MM.YYYY',
 			selectedOption: this.option,
 			isError: false
-		} 
+		}
 	},
 	props: {
 		title: { type: String, default: ''},
@@ -115,7 +115,7 @@ export default {
 	},
 	methods: {
 		handleInput(date) {
-			this.$emit('input', this.handleDate(date)); 
+			this.$emit('input', this.handleDate(date));
 			this.isError = false;
 		},
 		onCreate(val) {
@@ -136,7 +136,7 @@ export default {
 			} else {
 			 	this.currentDate.start = null;
 			 	this.currentInputDate = '';
-			}		
+			}
 		},
 		handleDateString(dis) {
 			if (dis && dis.length)
@@ -164,8 +164,8 @@ export default {
 					this.currentInputDate = `${this.currentInputDate.slice(0, 5)}.${new Date().getFullYear()}`;
 					this.handleCurrentInputDate();
 				} else if (!this.currentInputDate.length) {
-					this.isError = false; 
-				} 
+					this.isError = false;
+				}
 				this.openCalendar = false;
 				this.$emit('close');
 			}
@@ -176,27 +176,27 @@ export default {
 				this.currentDate.start = this.handleDateString(this.currentInputDate);
 				this.openCalendar = false;
 				this.$emit('input', this.handleDate(this.currentDate));
-			} 
+			}
 		},
 		handleRangeInputDate() {
 			let [start, end] = this.currentInputDate
 				.split('-')
 				.map(str => str.trim());
-			if (this.checkInputDate(start) 
+			if (this.checkInputDate(start)
 				&& this.checkInputDate(end)) {
 				this.currentDate = {
 					start:  this.handleDateString(start),
-					end:  this.handleDateString(end) 
+					end:  this.handleDateString(end)
 				}
 				this.$emit('input', this.handleDate(this.currentDate));
 			}
 		},
 		handleValue(val) {
-			if (this.selectedOption === 'range' 
+			if (this.selectedOption === 'range'
 				&& val.length === 10) {
 				val += ' - '
 			} else if (
-				val.length === 2 
+				val.length === 2
 				|| val.length === 5
 				|| val.length === 15
 				|| val.length === 18
@@ -205,7 +205,7 @@ export default {
 			}
 			this.currentInputDate = val;
 
-			if (this.selectedOption === 'one' 
+			if (this.selectedOption === 'one'
 				&& this.currentInputDate.length === this.format.length) {
 				this.handleCurrentInputDate();
 			} else if (this.selectedOption === 'range'
@@ -214,15 +214,15 @@ export default {
 			}
 		},
 		keyMonitor(e) {
-			let check = e.keyCode > 95 && e.keyCode < 106 
+			let check = e.keyCode > 95 && e.keyCode < 106
 			|| e.keyCode > 47 && e.keyCode < 58
-		  || e.keyCode === 8 
+		  || e.keyCode === 8
 		  || e.keyCode === 9
 		  || e.keyCode === 37
 		  || e.keyCode === 39;
 			if (!check) e.preventDefault();
 		},
-		checkInputDate(date) {	
+		checkInputDate(date) {
 			let disableB = this.disableBefore ? parseDate(this.disableBefore, this.format) : new Date(new Date().setFullYear(new Date().getFullYear() - 100));;
 			let disableA = this.disableAfter  ? parseDate(this.disableAfter, this.format) : null;
 
@@ -234,7 +234,7 @@ export default {
 				this.isError = true;
 				return false;
 			}
-			
+
 			if (disableA) {
 				between = isBetween(
 					disableB,
@@ -261,7 +261,7 @@ export default {
 			if (month === 11) {
 				month = -1;
 				year += 1
-			} 
+			}
 
 			let d = new Date();
 			d.setMonth(month + 1);
