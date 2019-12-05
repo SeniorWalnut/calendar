@@ -579,21 +579,17 @@ export default {
 	},
 	computed: {
 		dayNames() {
-		  if (this.locale === 'ru') {
-        return ['Пн','Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
-			}
-
 		  const res = [];
-		  for (let i = 0; i < 7; i++) {
+		  for (let i = 1; i < 7; i++) {
 		    res.push(
 		      capitalize(
 		        dayjs().locale(this.locale).day(i).format('dd')
 					)
 				)
 			}
-			// if (this.locale === 'en')
-			// 	return  ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-			// return ['M','T', 'W', 'T', 'F', 'S', 'S'];
+		  res.push(capitalize(
+        dayjs().locale(this.locale).day(0).format('dd')
+      ))
 			return res;
 		},
 		generateLocaleMonths() {
