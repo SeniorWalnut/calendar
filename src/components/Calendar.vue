@@ -374,17 +374,16 @@ export default {
 		},
 		monthDays() {
 			this.days = [];
-			let weekStart = this.locale === 'ru';
 			let firstDay = startOfMonth(this.localDate);
 			let resCurMonth = this.mapDates([
 			...getDates(
 					startOfWeek(
-						firstDay, weekStart
+						firstDay, true
 					),
 					endOfWeek(
 						lastDayOfMonth(
 							firstDay
-						),weekStart
+						),true
 					)
 			)], firstDay);
 
@@ -395,9 +394,9 @@ export default {
 				let resNextMonth = this.mapDates([
 					...getDates(
 						startOfWeek(
-							firstDayNext, weekStart),
+							firstDayNext, true),
 						endOfWeek(lastDayOfMonth(
-							firstDayNext), weekStart)
+							firstDayNext), true)
 				)], firstDayNext);
 
 				resCurMonth = resCurMonth.concat(resNextMonth);
