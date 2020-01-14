@@ -9,9 +9,9 @@
 	>
 		<h1
 			class="daterange__title"
-			v-if="title"
+			v-if="$slots.default"
 			:class="{required: required}"
-		>{{ title }}</h1>
+		><slot></slot></h1>
 		<input
 			type="text"
 			v-bind="$attrs"
@@ -79,7 +79,6 @@ export default {
 		}
 	},
 	props: {
-		title: { type: String, default: ''},
 		disableAfter: {type: [String, Date], default:  null},
 		disableBefore: {type: [String, Date], default: null},
 		placeholder: { type: String, default: ''},
