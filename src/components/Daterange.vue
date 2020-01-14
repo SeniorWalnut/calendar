@@ -2,6 +2,7 @@
 <div
 	class="daterange"
 	v-on-click-outside='handleClose'
+	:class="{disable: checkboxed}"
 >
 	<label
 		class="daterange__wrap"
@@ -43,6 +44,9 @@
 			@set-option="selectedOption = $event; $emit('option', $event)"
 			:option="option"
 			:button-names="buttonNames"
+			:checkbox="checkbox"
+			:checkboxed="checkboxed"
+			@input-checkbox="checkboxed = !checkboxed; $emit('input-checkbox')"
 		/>
 	</div>
 </div>
@@ -68,20 +72,21 @@ export default {
 	data() {
 		return {
 			currentRange: {},
-			currentDate: {},
+			currentDate: '',
 			currentInputDate: '',
 			inputDate: '',
 			openCalendar: false,
-			currentDate: '',
 			format: 'DD.MM.YYYY',
 			selectedOption: this.option,
-			isError: false
+			isError: false,
+			checkboxed: false
 		}
 	},
 	props: {
 		disableAfter: {type: [String, Date], default:  null},
 		disableBefore: {type: [String, Date], default: null},
 		placeholder: { type: String, default: ''},
+    checkbox: { type: String, default: ''},
 		value: { type: [Date, Object], default: ''},
 		locale: { type: String, default: 'en'},
 		isDouble: { type: Boolean, default: false},
@@ -102,6 +107,13 @@ export default {
 		selectedOption(old, val) {
 			if (old !== val)
 				this.currentInputDate = '';
+		},
+		checkboxed(val) {
+			if (val) {
+			  this.currentInputDate = this.checkbox;
+      } else {
+			  this.currentInputDate = '';
+			}
 		}
 	},
 	created() {
@@ -114,6 +126,7 @@ export default {
 	},
 	methods: {
 		handleInput(date) {
+		  if (this.checkboxed) return;
 			this.$emit('input', this.handleDate(date));
 			this.isError = false;
 		},
@@ -191,6 +204,7 @@ export default {
 			}
 		},
 		handleValue(val) {
+		  if (this.checkboxed) return;
 			if (this.selectedOption === 'range'
 				&& val.length === 10) {
 				val += ' - '
@@ -219,7 +233,7 @@ export default {
 		  || e.keyCode === 9
 		  || e.keyCode === 37
 		  || e.keyCode === 39;
-			if (!check) e.preventDefault();
+			if (!check || this.checkboxed) e.preventDefault();
 		},
 		checkInputDate(date) {
 			let disableB = this.disableBefore ? parseDate(this.disableBefore, this.format) : new Date(new Date().setFullYear(new Date().getFullYear() - 100));;
@@ -281,8 +295,13 @@ $calendarBack: #fff;
 .daterange {
 	font-family: 'Roboto', sans-serif;
 	position: relative;
+	&.disable {
+		.calendar-wrapper {
+			opacity: .6;
+		}
+	}
 	&__wrap {
-	  	display: block;
+		display: block;
 	}
 	&__title {
 		font-size: 12px;

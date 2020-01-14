@@ -1,4 +1,5 @@
 <template>
+	<div class="calendar-all">
 		<div class="calendar-wrapper">
 			<div class="calendar__top calendar-top">
 				<div
@@ -54,9 +55,9 @@
 								>
 									<td v-for="day in week">
 										<day-cell
-										  :day="day"
-										  @set-day="setDay"
-										  @hovered="hoverRange"
+											:day="day"
+											@set-day="setDay"
+											@hovered="hoverRange"
 										/>
 									</td>
 								</tr>
@@ -113,9 +114,9 @@
 								>
 									<td v-for="day in week">
 										<day-cell
-										  :day="day"
-										  @set-day="setDay"
-										  @hovered="hoverRange"
+											:day="day"
+											@set-day="setDay"
+											@hovered="hoverRange"
 										/>
 									</td>
 								</tr>
@@ -138,6 +139,18 @@
 					</div>
 				</div>
 			</div>
+		</div>
+		<div class="calendar-bottom" v-show="checkbox.length">
+			<label class="calendar-checkbox" for="calendar-checkbox">
+				<input
+					type="checkbox"
+					id="calendar-checkbox"
+					@input="$emit('input-checkbox')"
+					:checked="checkboxed"
+				>
+				<div class="calendar-checkbox__box"></div>
+				<div class="calendar-checkbox__text">{{ checkbox }}</div>
+			</label>
 		</div>
 	</div>
 </template>
@@ -186,8 +199,10 @@ export default {
 	},
 	props: {
 		disableBefore: { type: Date, default: () => null },
+    checkboxed: { type: Boolean, default: false },
 		disableAfter: { type: Date, default: () => null},
 		locale: { type: String, default: 'en'},
+    checkbox: { type: String, default: ''},
 		topButtons: { type: Boolean, default: false},
 		isDouble: { type: Boolean, default: false},
 		value: { type: [Object], default: null},
@@ -679,13 +694,47 @@ $optimalWidth: 230px;
 .calendar {
 	background-color: $calendarBack;
 	width: $optimalWidth;
+	&-all {
+		box-shadow: $shadow;
+	}
+	&-bottom {
+		padding: 12px 22px;
+		border-top: solid 1px #f6f7f9;
+	}
+
+	&-checkbox {
+		display: flex;
+		align-items: center;
+		cursor: pointer;
+		input[type="checkbox"] {
+			display: none;
+		}
+		&__box {
+			width: 18px;
+			height: 18px;
+			object-fit: contain;
+			border: 2px solid #e3e4e9;
+			box-sizing: border-box;
+			position: relative;
+		}
+		input[type="checkbox"]:checked ~ .calendar-checkbox__box {
+			background-image: url("../img/check.svg");
+			border: none;
+		}
+		&__text	{
+			font-size: 12px;
+			color: #3a3a3a;
+			line-height: 16px;
+			margin-left: 8px;
+		}
+	}
+
 	&__set-windows {
 		margin-top: 25px;
 	}
 	&-wrapper {
 		width: max-content;
 		padding: 25px 30px;
-    box-shadow: $shadow;
     position: relative;
 	}
 	&-buttons {
