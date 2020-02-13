@@ -41,7 +41,7 @@
 			:disable-after="handleDateString(disableAfter)"
 			:disable-before="handleDateString(disableBefore)"
 			:locale="locale"
-			@set-option="selectedOption = $event; $emit('option', $event)"
+			@set-option="setOption"
 			:option="option"
 			:button-names="buttonNames"
 			:checkbox="checkbox"
@@ -128,6 +128,14 @@ export default {
 		this.onCreate(this.value);
 	},
 	methods: {
+	  setOption($event) {
+      this.selectedOption = $event;
+      this.$emit('option', $event);
+      this.currentDate = {
+        start: null,
+				end: null
+			};
+		},
 		handleInput(date) {
 		  if (this.checkboxed) return;
 			this.$emit('input', this.handleDate(date));
