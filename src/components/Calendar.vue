@@ -481,7 +481,7 @@ export default {
 			if (!this.currentDate.start){
 				this.handleDays((day) => {
 					day.isHovered = false;
-				})
+				});
 				this.setOne(date);
 			} else {
 				this.hovering = true;
@@ -494,7 +494,7 @@ export default {
 					let [s, e] = [
 						this.currentDate.start,
 						this.currentDate.end
-					]
+					];
 					this.$emit('input', {start: s, end: e})
 				}
 			}

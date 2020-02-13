@@ -153,7 +153,8 @@ export default {
 						[this.currentDate.start, this.currentDate.end] = [end, start];
 					this.currentInputDate = `${formatDate(start, this.format)}${end ? ' - ' + formatDate(end, this.format) : ''}`;
 				} else {
-			 		this.currentDate.start = new Date(new Date().setHours(0, 0, 0, 0));
+			 		this.currentDate.start = null;
+						// new Date(new Date().setHours(0, 0, 0, 0));
 			 		this.currentInputDate = '';
 				}
 			} else {
@@ -166,7 +167,7 @@ export default {
 				return new Date(parseDate(dis, this.format));
 			else if (isValidDate(dis))
 				return new Date(dis.setHours(0, 0, 0, 0));
-			else null;
+			else return null;
 		},
 		handleDate(date) {
   		if (date.end) {
