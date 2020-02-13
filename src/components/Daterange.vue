@@ -102,7 +102,10 @@ export default {
 			this.onCreate(val);
 		},
 		currentInputDate(val) {
-			if (!val.length) this.isError = false;
+			if (!val.length) {
+			  this.isError = false;
+			  this.$emit('input', null);
+      }
 		},
 		selectedOption(old, val) {
 			if (old !== val)

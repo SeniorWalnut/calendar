@@ -208,7 +208,6 @@ export default {
 		value: { type: [Object], default: null},
 		option: { type: String, default: 'one'},
 		buttonNames: { type: Array, default: () => []}
-
 	},
 	watch: {
 		locale(val) {
